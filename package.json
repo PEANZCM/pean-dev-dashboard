@@ -1,0 +1,42 @@
+{
+  "name": "learning-dashboard",
+  "version": "1.0.0",
+  "description": "PEAN的开发小天地",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win"
+  },
+  "build": {
+    "appId": "com.trae.pean-dashboard",
+    "productName": "PEAN的开发小天地",
+    "directories": {
+      "output": "dist"
+    },
+    "publish": {
+      "provider": "generic",
+      "url": "https://example.com"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "src/**/*",
+      "build/icon.ico"
+    ],
+    "win": {
+      "icon": "build/icon.ico",
+      "target": "nsis",
+      "sign": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "PEAN的开发小天地"
+    }
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0"
+  }
+}
