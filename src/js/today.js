@@ -47,6 +47,7 @@ function setDisabled(btn, off) {
   btn.disabled = off;
   btn.style.opacity = off ? '0.4' : '';
   btn.style.cursor = off ? 'not-allowed' : '';
+  Glass.moved(btn);   // 禁用的按钮不在卡片上挖洞，否则半透明的按钮下面会露出一块没有磨砂的壁纸
 }
 
 function renderCheckin() {

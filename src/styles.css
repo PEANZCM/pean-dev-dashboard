@@ -512,4 +512,16 @@ body.glass-on .topbar > .glass-bg::after{display:none}
 body.motion-on .pill-btn,body.motion-on .icon-btn,body.motion-on .checkin-btn,body.motion-on .mood-btn{transition-property:background,color,opacity,box-shadow,filter}
 body.motion-on .pill-btn:active,body.motion-on .icon-btn:active,body.motion-on .checkin-btn:active,body.motion-on .mood-btn:active{transform:none}
 body.motion-on .tab-glider{transition:none}
+.tab-glider{pointer-events:none}
+/* 拖动 / 飞行中的滑块浮到文字上方，变成透明放大镜，折射下面的标签文字 */
+.tab-glider.lens{z-index:2}
+body.glass-on .tab-glider.lens{box-shadow:0 6px 18px rgba(0,0,0,.16)}
 body.motion-on .mood-btn.selected{transform:none}
+/* 玻璃按钮的选中态：底色交给玻璃，选中用一圈描边表示 */
+body.glass-on .mood-btn.selected{box-shadow:inset 0 0 0 2px var(--accent),0 4px 12px rgba(10,108,255,.18)}
+body.glass-on .seg{background:transparent;gap:4px;padding:0}
+body.glass-on .seg-btn.active{color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--accent)}
+/* 图片壁纸可能很花：按钮文字加一点描边阴影，输入区域加实底，保证看得清 */
+body.glass-on .glass:not(.glass-colored){text-shadow:0 0 6px color-mix(in srgb,var(--card-solid) 70%,transparent)}
+body.glass-on .diary-editor,body.glass-on .diary-preview{background:color-mix(in srgb,var(--card-solid) 62%,transparent)}
+body.dark.glass-on [data-glass=tint]{color:#fff}

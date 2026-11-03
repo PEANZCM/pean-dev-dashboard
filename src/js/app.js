@@ -73,9 +73,20 @@ function tick() {
 var GLASS_MAP = [
   ['.topbar', 'bar'], ['#viewTabs', 'tabs'], ['#tabGlider', 'glider'], ['.card', 'card'], ['.sheet', 'sheet'],
   ['.checkin-btn', 'blue'], ['.pill-btn.primary', 'blue'], ['.pill-btn.danger', 'red'], ['.pill-btn.tint', 'tint'],
-  ['.pill-btn', 'clear'], ['.icon-btn', 'clear']
+  ['.pill-btn', 'clear'], ['.icon-btn', 'clear'], ['.mood-btn', 'clear'], ['.seg-btn', 'clear'],
+  ['.task-edit-add-btn', 'tint'], ['.task-edit-del-btn', 'red']
 ];
-var PRESS = '.pill-btn, .icon-btn, .checkin-btn, .mood-btn';
+var PRESS = '.pill-btn, .icon-btn, .checkin-btn, .mood-btn, .seg-btn, .task-edit-add-btn, .task-edit-del-btn';
+
+// 给一块区域里的按钮都装上玻璃和弹簧（编辑器这种动态生成的内容也要调用）
+function decorate(root) {
+  GLASS_MAP.forEach(function (m) {
+    root.querySelectorAll(m[0]).forEach(function (el) { if (!el.hasAttribute('data-glass')) el.setAttribute('data-glass', m[1]); });
+  });
+  root.querySelectorAll('[data-glass]').forEach(Glass.register);
+  root.querySelectorAll(PRESS).forEach(Motion.pressable);
+  Glass.relayout();
+}
 
 function setupLook() {
   GLASS_MAP.forEach(function (m) {

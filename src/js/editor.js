@@ -104,6 +104,7 @@ function openTaskEditor() {
   });
   area.appendChild(add);
   openSheet('planSheet');
+  decorate(area);
 }
 
 function saveTaskEdits() {
