@@ -13,8 +13,9 @@
     refr: 0.6, edge: 0.6, blur: 1.5, panelBlur: 14, chroma: 0.18, rim: 0.7,
     tint: 1, sat: 1.3, shadow: 0.35, glow: 0,
     pressScale: 1.06, pressResp: 0.26, pressDamp: 0.62, follow: 0.06,
-    lift: 1.12, dragResp: 0.36, dragDamp: 0.72, stretch: 0.8, maxStretch: 0.25,
-    tabResp: 0.42, tabDamp: 0.74, quality: 1
+    pressStretch: 0.6, pressMax: 0.1,
+    lift: 1.12, dragResp: 0.36, dragDamp: 0.72, dragStretch: 0.45, dragMax: 0.12,
+    jelly: 0.45, tabResp: 0.42, tabDamp: 0.74, quality: 1
   };
 
   var CONTROLS = [
@@ -38,12 +39,16 @@
     { k: 'pressResp', label: '响应时间', min: 0.1, max: 0.8, step: 0.01 },
     { k: 'pressDamp', label: '阻尼', min: 0.3, max: 1, step: 0.01 },
     { k: 'follow', label: '跟手偏移', min: 0, max: 0.2, step: 0.005 },
+    { k: 'pressStretch', label: '按压拉伸', min: 0, max: 2, step: 0.01 },
+    { k: 'pressMax', label: '按压最大拉伸', min: 0, max: 0.3, step: 0.005 },
     '拖动',
     { k: 'lift', label: '拿起放大', min: 1, max: 1.3, step: 0.005 },
     { k: 'dragResp', label: '回弹响应', min: 0.15, max: 0.9, step: 0.01 },
     { k: 'dragDamp', label: '回弹阻尼', min: 0.3, max: 1, step: 0.01 },
-    { k: 'stretch', label: '拉伸强度', min: 0, max: 2, step: 0.01 },
-    { k: 'maxStretch', label: '最大拉伸', min: 0, max: 0.5, step: 0.01 },
+    { k: 'dragStretch', label: '拖动拉伸', min: 0, max: 2, step: 0.01 },
+    { k: 'dragMax', label: '拖动最大拉伸', min: 0, max: 0.4, step: 0.005 },
+    '松手果冻感',
+    { k: 'jelly', label: '果冻阻尼', min: 0.2, max: 1, step: 0.01 },
     '标签滑块',
     { k: 'tabResp', label: '响应时间', min: 0.15, max: 0.9, step: 0.01 },
     { k: 'tabDamp', label: '阻尼', min: 0.3, max: 1, step: 0.01 },
@@ -103,9 +108,9 @@
       tintName: el.getAttribute(engine === 'gl' ? 'data-gl' : 'data-css'),
       home: { x: 0, y: 0, w: 0, h: 0 }, radius: 0,
       ox: new Spring(0), oy: new Spring(0), sc: new Spring(1),
-      svx: new Spring(0, 0.12, 0.9), svy: new Spring(0, 0.12, 0.9),
+      st: new Spring(0, 0.16, 1), ang: 0,     // 拉伸量（负值 = 沿同一轴压扁）+ 拉伸轴角度
       glow: new Spring(0, 0.25, 1),
-      gx: 0, gy: 0, vx: 0, vy: 0, lastT: 0,
+      gx: 0, gy: 0, vx: 0, vy: 0, lastT: 0, samples: [],
       pressing: false, dragging: false, lastTf: '',
       css: engine === 'css' ? new CSSGlass(el) : null
     };
@@ -160,16 +165,19 @@
     });
   }
 
-  /* 线性部分：缩放 × 沿速度方向的体积守恒拉伸 */
-  function linear(sc, vx, vy) {
-    var v = Math.hypot(vx, vy);
-    var st = Math.min(v * P.stretch * 0.0004, P.maxStretch);
-    var sx = 1 + st, sy = 1 / (1 + st);
-    var th = Math.atan2(vy, vx), c = Math.cos(th), n = Math.sin(th);
+  /* 线性部分：缩放 × 沿 ang 轴的体积守恒拉伸（st<0 时沿该轴压扁 = 果冻回弹） */
+  function linear(sc, st, th) {
+    var sx = 1 + Math.max(st, -0.3), sy = 1 / sx;
+    var c = Math.cos(th), n = Math.sin(th);
     return [sc * (c * c * sx + n * n * sy), sc * c * n * (sx - sy), sc * (n * n * sx + c * c * sy)];
   }
 
-  /* ---------- 按压 ---------- */
+  /* 松手：拉伸量欠阻尼回零 → 拉长、压扁、再回正一次 */
+  function releaseStretch(s) {
+    s.st.tune(0.32, P.jelly).target = 0;
+  }
+
+  /* ---------- 按压：指针在按钮内移动时，按钮被“拉”向指针方向 ---------- */
   function bindPress(s) {
     var el = s.el;
     function track(e) {
@@ -177,6 +185,10 @@
       s.ox.tune(P.pressResp, 0.85).target = rx * P.follow;
       s.oy.tune(P.pressResp, 0.85).target = ry * P.follow;
       s.gx = rx; s.gy = ry;
+      // 归一化到按钮半尺寸：边缘按下比中心按下拉得更明显
+      var nx = rx / (s.home.w / 2), ny = ry / (s.home.h / 2), d = Math.hypot(nx, ny);
+      if (d > 0.08) s.ang = Math.atan2(ry, rx);
+      s.st.tune(0.2, 0.85).target = Math.min(d * P.pressStretch * 0.12, P.pressMax);
     }
     el.addEventListener('pointerdown', function (e) {
       if (e.button !== 0) return;
@@ -194,22 +206,39 @@
       s.ox.tune(P.pressResp, P.pressDamp).target = 0;
       s.oy.tune(P.pressResp, P.pressDamp).target = 0;
       s.glow.target = 0;
+      releaseStretch(s);
     }
     el.addEventListener('pointerup', up);
     el.addEventListener('pointercancel', up);
   }
 
-  /* ---------- 拖动 ---------- */
+  /* ---------- 拖动 ----------
+     速度 = 最近 80ms 内首末两点的位移 / 时间差。
+     逐事件求导时，相邻事件间隔可能只有 1~4ms，算出的速度会剧烈跳动，
+     拉伸量跟着抖 —— 这就是之前拖动时“微微乱抖”的原因 */
+  var WIN = 80;
+  function velocity(s) {
+    var a = s.samples, n = a.length;
+    if (n < 2) return [0, 0];
+    var p = a[n - 1], q = a[0], dt = (p.t - q.t) / 1000;
+    if (dt < 0.012) return [s.vx, s.vy];
+    return [(p.x - q.x) / dt, (p.y - q.y) / dt];
+  }
+  function pushSample(s, t, x, y) {
+    s.samples.push({ t: t, x: x, y: y });
+    while (s.samples.length > 2 && t - s.samples[0].t > WIN) s.samples.shift();
+  }
+
   function bindDrag(s) {
-    var el = s.el, grabX = 0, grabY = 0, lastX = 0, lastY = 0;
+    var el = s.el, grabX = 0, grabY = 0;
     el.addEventListener('pointerdown', function (e) {
       if (e.button !== 0) return;
       try { el.setPointerCapture(e.pointerId); } catch (err) {}
       s.dragging = true;
       el.classList.add('dragging');
       grabX = e.clientX - s.ox.x; grabY = e.clientY - s.oy.x;
-      lastX = e.clientX; lastY = e.clientY; s.lastT = e.timeStamp;
-      s.vx = s.ox.v; s.vy = s.oy.v;
+      s.samples = []; pushSample(s, e.timeStamp, e.clientX, e.clientY);
+      s.lastT = e.timeStamp; s.vx = 0; s.vy = 0;
       s.sc.tune(0.3, 0.7).target = P.lift;
       s.glow.target = 1;
     });
@@ -217,14 +246,10 @@
       if (!s.dragging) return;
       var evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
       if (!evs.length) evs = [e];
-      for (var i = 0; i < evs.length; i++) {
-        var ev = evs[i], dt = (ev.timeStamp - s.lastT) / 1000;
-        if (dt > 0.0005) {
-          s.vx = s.vx * 0.55 + (ev.clientX - lastX) / dt * 0.45;
-          s.vy = s.vy * 0.55 + (ev.clientY - lastY) / dt * 0.45;
-          lastX = ev.clientX; lastY = ev.clientY; s.lastT = ev.timeStamp;
-        }
-      }
+      for (var i = 0; i < evs.length; i++) pushSample(s, evs[i].timeStamp, evs[i].clientX, evs[i].clientY);
+      s.lastT = e.timeStamp;
+      var v = velocity(s);
+      s.vx = v[0]; s.vy = v[1];
       s.ox.jump(e.clientX - grabX, s.vx);
       s.oy.jump(e.clientY - grabY, s.vy);
       s.gx = e.clientX - (s.home.x + s.home.w / 2 + s.ox.x);
@@ -239,6 +264,7 @@
       s.oy.tune(P.dragResp, P.dragDamp); s.oy.target = 0; s.oy.v = s.vy;
       s.sc.tune(0.3, 0.62).target = 1;
       s.glow.target = 0;
+      releaseStretch(s);
     }
     el.addEventListener('pointerup', up);
     el.addEventListener('pointercancel', up);
@@ -344,12 +370,21 @@
 
   function stepShape(s, dt) {
     if (s.role === 'card' || s.role === 'bar') return;
-    if (s.dragging && performance.now() - s.lastT > 50) { s.vx *= 0.8; s.vy *= 0.8; }
-    s.svx.target = s.dragging ? s.vx : s.ox.v;
-    s.svy.target = s.dragging ? s.vy : s.oy.v;
+    if (s.dragging) {
+      // 指针停住 40ms 视为静止，拉伸平滑收回
+      if (performance.now() - s.lastT > 40) { s.vx = 0; s.vy = 0; s.samples.length = 0; }
+      var sp = Math.hypot(s.vx, s.vy);
+      // 拉伸轴只在速度足够时更新，并按轴向（模 π）平滑转动，低速时不会原地打转
+      if (sp > 80) {
+        var dA = Math.atan2(s.vy, s.vx) - s.ang;
+        dA = dA - Math.PI * Math.round(dA / Math.PI);
+        s.ang += dA * (1 - Math.exp(-dt / 0.05));
+      }
+      s.st.tune(0.16, 1).target = Math.min(sp * P.dragStretch * 0.0004, P.dragMax);
+    }
     s.ox.step(dt); s.oy.step(dt); s.sc.step(dt);
-    s.svx.step(dt); s.svy.step(dt); s.glow.step(dt);
-    var L = s.L = linear(s.sc.x, s.svx.x, s.svy.x);
+    s.st.step(dt); s.glow.step(dt);
+    var L = s.L = linear(s.sc.x, s.st.x, s.ang);
     var tf = 'translate(' + s.ox.x.toFixed(2) + 'px,' + s.oy.x.toFixed(2) + 'px) matrix(' +
       L[0].toFixed(4) + ',' + L[1].toFixed(4) + ',' + L[1].toFixed(4) + ',' + L[2].toFixed(4) + ',0,0)';
     if (tf !== s.lastTf) { s.el.style.transform = tf; s.lastTf = tf; }
@@ -365,7 +400,7 @@
     var moving = G.scrub && G.scrub.moved || Math.abs(G.cx.v) > 60;
     G.sc.tune(0.3, 0.7).target = moving ? 1 + (P.lift - 1) * 1.2 : 1;
     G.cx.step(dt); G.w.step(dt); G.sc.step(dt);
-    var st = Math.min(Math.abs(G.cx.v) * P.stretch * 0.0004, P.maxStretch);
+    var st = Math.min(Math.abs(G.cx.v) * P.dragStretch * 0.0004, P.dragMax);
     var L = [G.sc.x * (1 + st), 0, G.sc.x / (1 + st)];
     return glDesc(gliderShape, G.cx.x, G.cy, G.w.x / 2, G.h / 2, L, G.h / 2);
   }
