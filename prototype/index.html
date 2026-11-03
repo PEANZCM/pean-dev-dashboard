@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>液态玻璃实验室</title>
+<link rel="stylesheet" href="lab.css">
+</head>
+<body>
+
+<canvas id="gl"></canvas>
+
+<!-- 顶部标签栏（WebGL 玻璃 + 液态滑块） -->
+<header class="tabbar" id="tabbar" data-gl="bar">
+  <button class="tab active">今日</button>
+  <button class="tab">进度</button>
+  <button class="tab">规划</button>
+</header>
+
+<main class="stage">
+
+  <!-- 左：WebGL 方案 -->
+  <section class="panel" data-gl="card">
+    <h3>WebGL 方案</h3>
+    <p class="hint">玻璃由着色器绘制，只能折射壁纸和下层玻璃</p>
+    <div class="btns">
+      <button class="gbtn" data-gl="clear">透明玻璃</button>
+      <button class="gbtn big" data-gl="blue">今日打卡</button>
+      <button class="gbtn" data-gl="green">已完成</button>
+      <button class="gbtn" data-gl="red">删除</button>
+      <button class="gbtn round" data-gl="clear" aria-label="设置"><svg viewBox="0 0 24 24"><use href="#ic-gear"/></svg></button>
+    </div>
+    <div class="orb" data-gl="clear" data-drag>拖我</div>
+  </section>
+
+  <!-- 右：CSS / SVG 方案 -->
+  <section class="panel css-panel">
+    <div class="lgc lgc-bg" data-css="card"></div>
+    <h3>CSS / SVG 方案</h3>
+    <p class="hint">backdrop-filter 位移滤镜，能折射背后的文字</p>
+    <div class="btns">
+      <button class="gbtn lgc" data-css="clear">透明玻璃</button>
+      <button class="gbtn big lgc" data-css="blue">今日打卡</button>
+      <button class="gbtn lgc" data-css="green">已完成</button>
+      <button class="gbtn lgc" data-css="red">删除</button>
+      <button class="gbtn round lgc" data-css="clear" aria-label="设置"><svg viewBox="0 0 24 24"><use href="#ic-gear"/></svg></button>
+    </div>
+    <div class="orb lgc" data-css="clear" data-drag>拖我</div>
+    <p class="behind">这行字在按钮背后时，能看到它被折射</p>
+  </section>
+
+  <!-- 下：模糊渐变蒙版 -->
+  <section class="panel list-panel" data-gl="card">
+    <div class="list" id="list"></div>
+    <div class="fade-head">
+      <i style="--b:1px"></i><i style="--b:3px"></i><i style="--b:6px"></i><i style="--b:12px"></i>
+      <span>模糊渐变蒙版（滚动这里的列表）</span>
+    </div>
+  </section>
+
+</main>
+
+<!-- 调参面板 -->
+<aside class="ctrl" id="ctrl">
+  <div class="ctrl-head">
+    <b>调参</b><span id="fps">— fps</span>
+  </div>
+  <div id="ctrlBody"></div>
+  <div class="ctrl-actions">
+    <button id="resetBtn">恢复默认</button>
+    <button id="copyBtn">复制参数</button>
+  </div>
+  <input type="file" id="imgInput" accept="image/*" hidden>
+</aside>
+
+<div class="toast" id="toast"></div>
+
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="ic-gear" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></symbol>
+</svg>
+
+<script src="spring.js"></script>
+<script src="glass-gl.js"></script>
+<script src="glass-css.js"></script>
+<script src="lab.js"></script>
+</body>
+</html>

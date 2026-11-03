@@ -5,6 +5,7 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
+    "lab": "electron prototype/run-lab.js",
     "build": "electron-builder --win"
   },
   "build": {
