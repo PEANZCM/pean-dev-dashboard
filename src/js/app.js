@@ -12,7 +12,7 @@ var DEFAULTS = {
   'diary.json': { entries: {} },
   'mood.json': { moods: {} },
   'quotes.json': { custom: [], lastShownDate: null, currentQuote: null },
-  'settings.json': { darkMode: false, reminderHour: 20, lastReminded: null },
+  'settings.json': { darkMode: false, reminderHour: 20, lastReminded: null, wallpaper: 'auto', wallAnimated: true, glass: 'balanced', motion: 'full' },
   'screenshots.json': { shots: {} }
 };
 var KEYS = { checkin: 'checkin.json', streak: 'streak.json', flame: 'flame.json', medals: 'medals.json', diary: 'diary.json', mood: 'mood.json', quotes: 'quotes.json', settings: 'settings.json', shots: 'screenshots.json' };
@@ -23,7 +23,10 @@ async function loadAll() {
     S.medals.labelMemory = S.medals.labelMemory || {};
     S.medals.labelMemory[t] = S.medals.labelMemory[t] || [];
   });
-  if (S.settings.reminderHour == null) S.settings.reminderHour = 20;
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  [['reminderHour', 20], ['wallpaper', 'auto'], ['wallAnimated', true], ['glass', 'balanced'], ['motion', reduce ? 'reduced' : 'full']].forEach(function (kv) {
+    if (S.settings[kv[0]] == null) S.settings[kv[0]] = kv[1];
+  });
 
   // 规划：没有 plan.json 就从旧 tasks.json 迁移（旧文件不动）
   var plan = await Store.load('plan.json', null);
@@ -65,17 +68,54 @@ function tick() {
   }
 }
 
-// ===== 设置 =====
-function applyTheme() {
-  document.body.classList.toggle('dark', !!S.settings.darkMode);
-  $('settingsThemeToggle').classList.toggle('on', !!S.settings.darkMode);
-  $('reminderHour').value = String(S.settings.reminderHour);
+// ===== 外观：玻璃 / 动效 / 壁纸 =====
+// 哪些元素是什么玻璃：按钮自身是玻璃；卡片、顶栏、标签栏、弹层是「容器玻璃」
+var GLASS_MAP = [
+  ['.topbar', 'bar'], ['#viewTabs', 'tabs'], ['#tabGlider', 'glider'], ['.card', 'card'], ['.sheet', 'sheet'],
+  ['.checkin-btn', 'blue'], ['.pill-btn.primary', 'blue'], ['.pill-btn.danger', 'red'], ['.pill-btn.tint', 'tint'],
+  ['.pill-btn', 'clear'], ['.icon-btn', 'clear']
+];
+var PRESS = '.pill-btn, .icon-btn, .checkin-btn, .mood-btn';
+
+function setupLook() {
+  GLASS_MAP.forEach(function (m) {
+    document.querySelectorAll(m[0]).forEach(function (el) { if (!el.hasAttribute('data-glass')) el.setAttribute('data-glass', m[1]); });
+  });
+  Wallpaper.init();
+  Glass.init();
+  document.querySelectorAll(PRESS).forEach(Motion.pressable);
 }
-function toggleDarkMode() {
-  S.settings.darkMode = !S.settings.darkMode;
+
+var wallImage = null;
+async function applyWallpaper() {
+  var w = S.settings.wallpaper;
+  if (w === 'image' && !wallImage) wallImage = await dashboardAPI.readWallpaper();
+  if (w === 'image' && !wallImage) w = 'auto';          // 图片丢了就退回跟随主题
+  Wallpaper.set(w, !!S.settings.darkMode, wallImage);
+  Wallpaper.setAnimated(S.settings.wallAnimated);
+}
+
+function applyTheme() {
+  var s = S.settings;
+  document.body.classList.toggle('dark', !!s.darkMode);
+  $('settingsThemeToggle').classList.toggle('on', !!s.darkMode);
+  $('wallAnimToggle').classList.toggle('on', !!s.wallAnimated);
+  $('reminderHour').value = String(s.reminderHour);
+  $('wallpaperSelect').value = s.wallpaper;
+  $('glassSelect').value = s.glass;
+  $('motionSelect').value = s.motion;
+  Glass.setDark(s.darkMode);
+  Glass.setQuality(s.glass);
+  Motion.setLevel(s.motion);
+  applyWallpaper();
+}
+
+function saveSetting(k, v) {
+  S.settings[k] = v;
   Store.save('settings.json', S.settings);
   applyTheme();
 }
+function toggleDarkMode() { saveSetting('darkMode', !S.settings.darkMode); }
 
 async function resetProgress() {
   // 只清进度，保留你的人生规划本身
@@ -147,6 +187,15 @@ function bindEvents() {
     Store.save('settings.json', S.settings);
     showToast(S.settings.reminderHour > 23 ? '已关闭打卡提醒' : '每天 ' + S.settings.reminderHour + ':00 后没打卡会提醒你');
   });
+  on('wallAnimToggle', function () { saveSetting('wallAnimated', !S.settings.wallAnimated); });
+  $('glassSelect').addEventListener('change', function () { saveSetting('glass', this.value); });
+  $('motionSelect').addEventListener('change', function () { saveSetting('motion', this.value); });
+  $('wallpaperSelect').addEventListener('change', async function () {
+    if (this.value !== 'image') { saveSetting('wallpaper', this.value); return; }
+    var src = await dashboardAPI.pickWallpaper();      // 主进程复制一份到数据目录
+    if (src) { wallImage = src; saveSetting('wallpaper', 'image'); showToast('壁纸已更换'); }
+    else this.value = S.settings.wallpaper;
+  });
   on('settingsResetYes', resetProgress);
   on('settingsResetNo', function () { $('settingsResetConfirm').style.display = 'none'; });
 
@@ -156,6 +205,7 @@ async function init() {
   await loadAll();
   currentDate = Dates.today();
   if (Rules.detectBreak(S)) saveRules();
+  setupLook();
   applyTheme();
   renderAll();
   openDayDetail(currentDate);

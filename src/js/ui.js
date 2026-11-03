@@ -1,52 +1,47 @@
 // ============================================================
 //  界面框架：标签切页、弹层（sheet）
+//  动画只用位移，不用透明度：祖先元素一旦半透明，里面的液态玻璃会瞬间变平
 // ============================================================
 
-// ===== 切页：旧视图先淡出、隐藏，新视图再淡入 —— 任何时刻只有一个视图在显示 =====
-var UI = { view: 'today', switching: false };
+var UI = { view: 'today' };
 
-function moveGlider() {
-  var active = document.querySelector('.tab.active');
-  if (!active) return;
-  var g = $('tabGlider');
-  g.style.width = active.offsetWidth + 'px';
-  g.style.transform = 'translateX(' + (active.offsetLeft - 4) + 'px)';
-}
+function activeTab() { return document.querySelector('.tab.active'); }
 
+// ===== 切页：和 iOS 一样即时切换，新页面从下方轻轻弹上来；任何时刻只显示一个视图 =====
 function showView(name) {
-  if (name === UI.view || UI.switching) return;
+  if (name === UI.view) { Motion.glideTo(activeTab(), true); return; }
   var from = document.querySelector('.view.active');
   var to = document.querySelector('.view[data-view="' + name + '"]');
   if (!from || !to) return;
   UI.view = name;
-  UI.switching = true;
   document.querySelectorAll('.tab').forEach(function (t) {
     var on = t.dataset.view === name;
     t.classList.toggle('active', on);
     t.setAttribute('aria-selected', on ? 'true' : 'false');
   });
-  moveGlider();
-  from.classList.add('leave');
-  setTimeout(function () {
-    from.classList.remove('active', 'leave');
-    window.scrollTo(0, 0);
-    to.classList.add('active', 'enter');
-    if (name === 'progress') renderHeatmap();   // 热力图按可见宽度排版
-    setTimeout(function () { to.classList.remove('enter'); UI.switching = false; }, 340);
-  }, 160);
+  Motion.glideTo(activeTab(), true);
+  from.classList.remove('active', 'enter');
+  window.scrollTo(0, 0);
+  to.classList.remove('enter');
+  void to.offsetWidth;            // 重新触发进场动画
+  to.classList.add('active', 'enter');
 }
 
-// ===== 弹层：同一时间只开一个；点背景、按 Esc、点关闭按钮都能收起 =====
-var Sheet = { current: null, onClose: null };
+// ===== 弹层：同一时间只开一个；点背景、按 Esc、点关闭、按住顶部下拉都能收起 =====
+var Sheet = { current: null, onClose: null, closing: 0 };
 
 function openSheet(id, onClose) {
   var layer = $('sheetLayer');
   if (Sheet.current) closeSheet(true);
+  clearTimeout(Sheet.closing);
   Sheet.current = id;
   Sheet.onClose = onClose || null;
   layer.classList.remove('closing');
   layer.classList.add('open');
-  $(id).classList.add('active');
+  var s = $(id);
+  s.style.transform = '';
+  s.classList.add('active');
+  Glass.refresh(s);
 }
 
 function closeSheet(immediate) {
@@ -56,26 +51,34 @@ function closeSheet(immediate) {
   Sheet.current = null; Sheet.onClose = null;
   function done() {
     sheet.classList.remove('active');
+    sheet.style.transform = '';
     layer.classList.remove('open', 'closing');
     if (cb) cb();
   }
   if (immediate) return done();
   layer.classList.add('closing');
-  setTimeout(done, 200);
+  Sheet.closing = setTimeout(done, 300);
 }
 
 function bindShell() {
+  var tabs = $('viewTabs');
+  Motion.initTabs(tabs, $('tabGlider'), function (tab) { if (tab) showView(tab.dataset.view); });
+  // 键盘（Tab + 回车）仍然能切页；鼠标点击由滑块的按住/拖动逻辑处理
   document.querySelectorAll('.tab').forEach(function (t) {
-    t.addEventListener('click', function () { showView(t.dataset.view); });
+    t.addEventListener('click', function (e) { if (e.detail === 0) showView(t.dataset.view); });
   });
-  window.addEventListener('resize', moveGlider);
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(moveGlider);
-  moveGlider();
+  var place = function () { Motion.glideTo(activeTab(), false); };
+  window.addEventListener('resize', place);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(place);
+  place();
 
   var layer = $('sheetLayer');
   layer.addEventListener('click', function (e) {
-    if (e.target === layer) closeSheet();
+    if (e.target.classList.contains('sheet-dim') || e.target === layer) closeSheet();
     if (e.target.closest && e.target.closest('[data-close]')) closeSheet();
   });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeSheet(); });
+  document.querySelectorAll('.sheet').forEach(function (s) {
+    Motion.sheetDrag(s, s.querySelector('.sheet-head'), function () { if (Sheet.current === s.id) closeSheet(); });
+  });
 }

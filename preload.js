@@ -10,6 +10,10 @@ contextBridge.exposeInMainWorld('dashboardAPI', {
   deleteScreenshot: (filename) => ipcRenderer.invoke('screenshot:delete', filename),
   openImage: () => ipcRenderer.invoke('dialog:openImage'),
 
+  // 自选壁纸
+  pickWallpaper: () => ipcRenderer.invoke('wallpaper:pick'),
+  readWallpaper: () => ipcRenderer.invoke('wallpaper:read'),
+
   // 系统通知
   showNotification: (title, body) => ipcRenderer.invoke('notification:show', title, body),
 

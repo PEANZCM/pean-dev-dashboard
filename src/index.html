@@ -9,6 +9,10 @@
 </head>
 <body>
 
+<!-- 壁纸：玻璃要折射的东西 -->
+<canvas id="wallCanvas"></canvas>
+<div id="wallImage"></div>
+
 <!-- ===== 顶栏：品牌 · 标签 · 奖章 / 设置 ===== -->
 <header class="topbar">
   <div class="brand">
@@ -179,6 +183,7 @@
 
 <!-- ===== 弹层（iOS sheet）：奖章 / 设置 / 规划编辑 / 收藏名言 ===== -->
 <div class="sheet-layer" id="sheetLayer">
+  <div class="sheet-dim"></div>
 
   <section class="sheet" id="medalSheet" aria-label="奖章墙">
     <div class="sheet-head"><h2><svg class="ic"><use href="#i-medal"/></svg> 奖章墙</h2><button class="icon-btn sm" data-close aria-label="关闭"><svg class="ic"><use href="#i-close"/></svg></button></div>
@@ -196,6 +201,20 @@
       <div class="set-group">
         <div class="set-title">外观</div>
         <div class="set-row"><span>深色模式</span><button class="switch" id="settingsThemeToggle" aria-label="深色模式"><i></i></button></div>
+        <div class="set-row"><span>壁纸</span>
+          <select class="select" id="wallpaperSelect">
+            <option value="auto">跟随主题</option><option value="dawn">晨雾</option><option value="mint">薄荷</option>
+            <option value="aurora">极光</option><option value="sunset">日落</option><option value="ocean">深海</option>
+            <option value="image">自选图片…</option><option value="plain">纯色（不用壁纸）</option>
+          </select>
+        </div>
+        <div class="set-row"><span>动态壁纸<small>光斑缓慢流动</small></span><button class="switch" id="wallAnimToggle" aria-label="动态壁纸"><i></i></button></div>
+        <div class="set-row"><span>玻璃效果<small>省电只保留模糊，不做折射</small></span>
+          <select class="select" id="glassSelect"><option value="balanced">均衡（按钮折射，推荐）</option><option value="high">完整液态（卡片也折射，配静态壁纸更流畅）</option><option value="off">省电</option></select>
+        </div>
+        <div class="set-row"><span>动效</span>
+          <select class="select" id="motionSelect"><option value="full">完整（Q 弹）</option><option value="reduced">减弱（不拉伸、不回弹）</option><option value="off">关闭</option></select>
+        </div>
       </div>
       <div class="set-group">
         <div class="set-title">提醒</div>
@@ -217,7 +236,7 @@
         <img class="about-icon-img" id="aboutIconImg" src="" alt="" style="display:none">
         <div class="about-icon" id="aboutIconFallback"><svg class="ic"><use href="#i-logo"/></svg></div>
         <div class="about-name">PEAN的开发小天地</div>
-        <div class="about-meta"><span class="about-version">V1.3.1</span> · 制作者：PEAN</div>
+        <div class="about-meta"><span class="about-version">V1.4.0</span> · 制作者：PEAN</div>
       </div>
     </div>
   </section>
@@ -252,6 +271,10 @@
 <script src="js/rules.js"></script>
 <script src="js/plan.js"></script>
 <script src="js/util.js"></script>
+<script src="js/spring.js"></script>
+<script src="js/glass.js"></script>
+<script src="js/motion.js"></script>
+<script src="js/wallpaper.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/today.js"></script>
 <script src="js/progress.js"></script>

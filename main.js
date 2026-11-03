@@ -119,6 +119,37 @@ ipcMain.handle('dialog:openImage', async () => {
   } catch (err) { return null; }
 });
 
+// ===== IPC: 自选壁纸（复制一份到数据目录，只保留最新一张） =====
+const WALL_EXT = ['.png', '.jpg', '.jpeg', '.webp', '.bmp', '.gif'];
+const MIME = { '.png': 'png', '.jpg': 'jpeg', '.jpeg': 'jpeg', '.webp': 'webp', '.bmp': 'bmp', '.gif': 'gif' };
+function wallFile() {
+  const f = fs.readdirSync(DATA_DIR).find((n) => /^wallpaper\.\w+$/.test(n));
+  return f ? path.join(DATA_DIR, f) : null;
+}
+function wallDataUrl(fp) {
+  return 'data:image/' + MIME[path.extname(fp).toLowerCase()] + ';base64,' + fs.readFileSync(fp).toString('base64');
+}
+ipcMain.handle('wallpaper:pick', async () => {
+  try {
+    const result = await dialog.showOpenDialog(mainWindow, {
+      title: '选择壁纸',
+      filters: [{ name: '图片', extensions: WALL_EXT.map((e) => e.slice(1)) }],
+      properties: ['openFile']
+    });
+    if (result.canceled || !result.filePaths.length) return null;
+    const src = result.filePaths[0], ext = path.extname(src).toLowerCase();
+    if (!WALL_EXT.includes(ext)) return null;
+    const old = wallFile();
+    if (old) fs.unlinkSync(old);
+    const dest = path.join(DATA_DIR, 'wallpaper' + ext);
+    fs.copyFileSync(src, dest);
+    return wallDataUrl(dest);
+  } catch (err) { return null; }
+});
+ipcMain.handle('wallpaper:read', () => {
+  try { const fp = wallFile(); return fp ? wallDataUrl(fp) : null; } catch (err) { return null; }
+});
+
 // ===== IPC: 系统通知 =====
 ipcMain.handle('notification:show', (e, title, body) => {
   try {
