@@ -144,7 +144,6 @@
     ['.day-detail',             { kind: 'shell' }],
     ['.heatmap-card',           { kind: 'shell' }],
     ['.time-plan',              { kind: 'shell' }],
-    ['.news-card',              { kind: 'shell' }],
     ['.quote-card',             { kind: 'shell' }],
     ['.modal-content',          { kind: 'shell' }],
 
@@ -156,7 +155,6 @@
     ['.edit-btn',               { kind: 'btn', tint: 'accent' }],
     ['.cal-nav-btn',            { kind: 'btn' }],
     ['.cal-today-btn',          { kind: 'btn', tint: 'accent' }],
-    ['.news-refresh-btn',       { kind: 'btn' }],
     ['.quote-btn',              { kind: 'btn' }],
     ['.back-btn',               { kind: 'btn', tint: 'accent' }],
     ['.upload-btn',             { kind: 'btn', tint: 'accent' }],
