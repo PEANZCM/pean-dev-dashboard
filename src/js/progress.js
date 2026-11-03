@@ -143,34 +143,92 @@ function deleteScreenshot(dateStr, idx) {
   showToast('截图已删除');
 }
 
-// ===== 热力图：最近一年，按周排列；53 列按容器宽度等分，不再横向滚动 =====
-function renderHeatmap() {
-  var WEEKS = 53;
-  var today = Dates.today();
+// ===== 热力图：最近一年 =====
+// 每一列是一周（周日在最上），每一格是一天；53 列按宽度等分，不横向滚动。
+// 为了看得懂：左边标星期，上面标月份（跨年处带年份），相邻月份深浅交替，
+// 今天描边，鼠标移上去显示具体日期，点一下跳到那天的详情
+var WEEKS = 53;
+
+function heatDays() {
   var start = Dates.parse(Dates.offset(-364));
   start.setDate(start.getDate() - start.getDay());
-  var months = [], cur = -1, gh = '';
-  for (var w = 0; w < WEEKS; w++) {
-    var col = '', monthStart = false;
-    for (var d = 0; d < 7; d++) {
-      var day = new Date(start);
-      day.setDate(day.getDate() + w * 7 + d);
-      var ds = Dates.fmt(day);
-      var cls = ds > today ? 'hm-future' : isCheckedIn(ds) ? 'hm-4' : 'hm-0';
-      col += '<span class="hm-cell ' + cls + '" title="' + ds + '"></span>';
-      if (d === 0 && day.getMonth() !== cur) {
-        cur = day.getMonth();
-        months.push({ week: w, label: (cur + 1) + '月' });
-        monthStart = true;
-      }
-    }
-    gh += '<div class="heatmap-col' + (monthStart && w > 0 ? ' month-sep' : '') + '">' + col + '</div>';
+  var out = [];
+  for (var i = 0; i < WEEKS * 7; i++) {
+    var d = new Date(start);
+    d.setDate(d.getDate() + i);
+    out.push(d);
   }
-  // 月份标签按百分比定位；两个标签挨得太近（不足 3 周）时跳过前一个，避免重叠
-  $('heatmapMonths').innerHTML = months.filter(function (mp, i) {
-    return i === months.length - 1 || months[i + 1].week - mp.week >= 3;
-  }).map(function (mp) {
-    return '<span style="left:' + (mp.week / WEEKS * 100).toFixed(2) + '%">' + mp.label + '</span>';
-  }).join('');
-  $('heatmapGrid').innerHTML = gh;
+  return out;
+}
+
+// 一段日期里最长的连续打卡天数
+function longestRun(days) {
+  var best = 0, run = 0;
+  days.forEach(function (d) {
+    run = isCheckedIn(Dates.fmt(d)) ? run + 1 : 0;
+    if (run > best) best = run;
+  });
+  return best;
+}
+
+function renderHeatmap() {
+  var today = Dates.today(), days = heatDays();
+  var cells = '', labels = '', lastMonth = -1, count = 0;
+  ['日', '一', '二', '三', '四', '五', '六'].forEach(function (w, i) {
+    cells += '<span class="hm-wd">' + (i % 2 ? w : '') + '</span>';
+  });
+  days.forEach(function (d, i) {
+    var ds = Dates.fmt(d), week = Math.floor(i / 7);
+    var state = ds > today ? 'hm-future' : isCheckedIn(ds) ? 'hm-4' : 'hm-0';
+    if (state === 'hm-4') count++;
+    cells += '<span class="hm-cell ' + state + (d.getMonth() % 2 ? ' alt' : '') + (ds === today ? ' hm-today' : '') + '" data-date="' + ds + '"></span>';
+    // 月份标签放在这个月 1 号所在的那一列；第一列补上起始月份
+    if (d.getMonth() !== lastMonth && (d.getDate() === 1 || i === 0)) {
+      lastMonth = d.getMonth();
+      var withYear = i === 0 || d.getMonth() === 0;
+      // 靠近右边缘的标签贴着最后一列右对齐，免得溢出卡片
+      var pos = week > WEEKS - 3 ? 'grid-column:-2;justify-self:end' : 'grid-column:' + (week + 2);
+      labels += '<span style="' + pos + '">' + (withYear ? d.getFullYear() + '年' : '') + (d.getMonth() + 1) + '月</span>';
+    }
+  });
+  $('heatmapMonths').innerHTML = labels;
+  $('heatmapGrid').innerHTML = cells;
+  var monthCount = S.checkin.dates.filter(function (ds) { return ds.slice(0, 7) === today.slice(0, 7); }).length;
+  $('heatmapSummary').textContent = '最近一年打卡 ' + count + ' 天 · 最长连续 ' + longestRun(days) + ' 天 · 本月 ' + monthCount + ' 天';
+}
+
+function heatTip(ds) {
+  var d = Dates.parse(ds), today = Dates.today();
+  var s = d.getFullYear() + '年' + Dates.cn(ds);
+  if (ds > today) return s + ' · 还没到';
+  s += ds === today ? ' · 今天' : '';
+  s += isCheckedIn(ds) ? ' · 已打卡' : ' · 未打卡';
+  if (S.mood.moods[ds]) s += ' ' + S.mood.moods[ds];
+  if (S.diary.entries[ds] && S.diary.entries[ds].trim()) s += ' · 有日记';
+  return s;
+}
+
+function bindHeatmap() {
+  var grid = $('heatmapGrid'), tip = $('hmTip'), box = $('heatmap');
+  grid.addEventListener('mouseover', function (e) {
+    var c = e.target.closest('.hm-cell');
+    if (!c) return;
+    tip.textContent = heatTip(c.dataset.date);
+    var r = c.getBoundingClientRect(), b = box.getBoundingClientRect();
+    tip.style.display = 'block';
+    var x = r.left - b.left + r.width / 2;
+    x = Math.max(tip.offsetWidth / 2, Math.min(b.width - tip.offsetWidth / 2, x));
+    tip.style.left = x + 'px';
+    tip.style.top = (r.top - b.top - 8) + 'px';
+  });
+  grid.addEventListener('mouseleave', function () { tip.style.display = 'none'; });
+  grid.addEventListener('click', function (e) {
+    var c = e.target.closest('.hm-cell');
+    if (!c || c.dataset.date > Dates.today()) return;
+    var d = Dates.parse(c.dataset.date);
+    calMonth = new Date(d.getFullYear(), d.getMonth(), 1);
+    renderCalendar();
+    openDayDetail(c.dataset.date);
+    $('dayDetail').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
 }

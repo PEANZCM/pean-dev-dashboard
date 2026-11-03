@@ -31,7 +31,8 @@ function stamp() {
 
   if (running()) {
     if (!process.argv.includes('--close')) throw new Error('软件正在运行，请先关闭（或加 --close 让脚本正常关闭它）');
-    execFileSync('taskkill', ['/IM', 'PEAN的开发小天地.exe']);   // 不带 /F：发送正常关闭消息，软件会先保存
+    // 不带 /F：只给窗口发正常关闭消息，软件会先保存；后台辅助进程会报“只能强制终止”，随主窗口一起退出，忽略即可
+    try { execFileSync('taskkill', ['/IM', 'PEAN的开发小天地.exe'], { stdio: 'ignore' }); } catch (e) {}
     for (let i = 0; i < 20 && running(); i++) await sleep(500);
     if (running()) throw new Error('软件没有正常退出，请手动关闭后重试');
   }

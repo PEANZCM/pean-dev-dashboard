@@ -166,12 +166,13 @@
     </div>
 
     <section class="card heatmap-card">
-      <div class="card-head"><h2>打卡热力图</h2><span class="muted">最近一年</span></div>
+      <div class="card-head"><h2>打卡热力图</h2><span class="muted" id="heatmapSummary">最近一年</span></div>
       <div class="heatmap" id="heatmap">
         <div class="heatmap-months" id="heatmapMonths"></div>
         <div class="heatmap-grid" id="heatmapGrid"></div>
+        <div class="hm-tip" id="hmTip"></div>
       </div>
-      <div class="heatmap-legend"><span>少</span><i class="hm-cell hm-0"></i><i class="hm-cell hm-4"></i><span>多</span></div>
+      <div class="heatmap-legend"><span class="hint-text">每一列是一周，每一格是一天 · 鼠标移上去看日期，点一下查看那天</span><span><i class="hm-cell hm-4"></i>已打卡</span><span><i class="hm-cell hm-0"></i>未打卡</span><span><i class="hm-cell hm-0 hm-today"></i>今天</span></div>
     </section>
   </section>
 </main>
@@ -216,7 +217,7 @@
         <img class="about-icon-img" id="aboutIconImg" src="" alt="" style="display:none">
         <div class="about-icon" id="aboutIconFallback"><svg class="ic"><use href="#i-logo"/></svg></div>
         <div class="about-name">PEAN的开发小天地</div>
-        <div class="about-meta"><span class="about-version">V1.3.0</span> · 制作者：PEAN</div>
+        <div class="about-meta"><span class="about-version">V1.3.1</span> · 制作者：PEAN</div>
       </div>
     </div>
   </section>

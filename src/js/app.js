@@ -161,6 +161,7 @@ async function init() {
   openDayDetail(currentDate);
   loadAboutIcon();
   bindShell();
+  bindHeatmap();
   bindEvents();
   tick();
   setInterval(tick, 60 * 1000);
