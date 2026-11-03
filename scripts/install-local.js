@@ -54,6 +54,7 @@ function stamp() {
   fs.rmSync(packed, { force: true });
   console.log('已安装 v' + VERSION + ' → ' + ASAR);
 
-  spawn(EXE, [], { detached: true, stdio: 'ignore' }).unref();
+  // 交给资源管理器启动：软件不挂在本脚本的进程树下，脚本所在的终端关掉也不会把它一起带走
+  spawn('explorer.exe', [EXE], { detached: true, stdio: 'ignore' }).unref();
   console.log('已启动新版');
 })().catch((e) => { console.error('安装失败：' + e.message); process.exit(1); });
