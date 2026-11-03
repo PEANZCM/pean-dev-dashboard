@@ -19,9 +19,16 @@ function renderMedalWall() {
       '<div class="medal-current-tier" style="color:' + T[lm.tier].color + '">' + T[lm.tier].name + ' · ' + escapeHtml(lm.label) + '</div>';
   } else if (streak > 0) {
     cur.innerHTML = '<div class="medal-current-title">当前连续打卡</div><div class="medal-current-streak">' + streak + ' 天</div>' +
-      '<div class="medal-current-tier" style="color:var(--muted)">再坚持 ' + (T.blue.min - streak) + ' 天获得首个奖章</div>';
+      '<div class="medal-current-tier" style="color:var(--muted)">还没有奖章</div>';
   } else {
     cur.innerHTML = '<div class="medal-current-title">尚未开始连续打卡</div><div class="medal-current-streak" style="font-size:16px;color:var(--muted)">今天打卡开始你的旅程</div>';
+  }
+  // 离下一枚奖章的进度条
+  var tier = Rules.getTier(streak), next = Rules.ORDER[Rules.ORDER.indexOf(tier) + 1];
+  if (next) {
+    var from = T[tier].min, to = T[next].min;
+    cur.innerHTML += '<div class="medal-next"><i style="width:' + Math.round((streak - from) / (to - from) * 100) + '%"></i></div>' +
+      '<div class="medal-next-label">' + streak + ' / ' + to + ' 天 · ' + T[next].name + '</div>';
   }
 
   var all = [];

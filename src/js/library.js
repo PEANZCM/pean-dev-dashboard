@@ -55,14 +55,7 @@ var BUILTIN_QUOTES = [
   { text: '代码就像幽默。当你不得不解释它的时候，它就很差。', author: 'Cory House' }
 ];
 
-// ===== 时间规划：和路线图同一份数据 =====
-function renderTimePlan() {
-  $('timePlanBody').innerHTML = S.plan.stages.map(function (s) {
-    return '<tr><td>' + escapeHtml(s.time || '—') + '</td><td>' + escapeHtml(s.title) + '</td><td>' + escapeHtml(s.output || '—') + '</td></tr>';
-  }).join('');
-}
-
-// ===== 名言 =====
+// ===== 今日一句（时间规划表已并入「人生路线」） =====
 function pickRandomQuote() {
   var pool = BUILTIN_QUOTES.concat(S.quotes.custom || []);
   return pool[Math.floor(Math.random() * pool.length)];
@@ -94,33 +87,40 @@ function refreshQuote() {
 }
 
 function addCustomQuote() {
-  $('quoteModal').style.display = 'flex';
   $('quoteInput').value = '';
   $('quoteAuthorInput').value = '';
+  openSheet('quoteSheet');
+  setTimeout(function () { $('quoteInput').focus(); }, 60);
 }
 
 function saveCustomQuote() {
   var text = $('quoteInput').value.trim();
-  if (!text) { showToast('请输入名言内容'); return; }
+  if (!text) { showToast('先写下这句话'); return; }
   (S.quotes.custom = S.quotes.custom || []).push({ text: text, author: $('quoteAuthorInput').value.trim() });
   Store.save('quotes.json', S.quotes);
-  $('quoteModal').style.display = 'none';
+  closeSheet();
   renderCustomQuotes();
-  showToast('名言已添加');
+  showToast('已收藏');
 }
 
+// 收藏默认折叠，点「我的收藏」展开
+var quotesOpen = false;
+function toggleCustomQuotes() { quotesOpen = !quotesOpen; renderCustomQuotes(); }
+
 function renderCustomQuotes() {
-  var box = $('customQuotes'), list = S.quotes.custom || [];
-  if (!list.length) { box.style.display = 'none'; return; }
+  var box = $('customQuotes'), btn = $('customQuotesToggle'), list = S.quotes.custom || [];
+  btn.style.display = list.length ? '' : 'none';
+  btn.textContent = '我的收藏 ' + list.length + (quotesOpen ? ' ▴' : ' ▾');
+  if (!list.length || !quotesOpen) { box.style.display = 'none'; return; }
   box.style.display = 'block';
-  $('customQuotesList').innerHTML = '<div class="custom-quotes-title">我的收藏 (' + list.length + ')</div>' +
-    list.map(function (q, i) {
-      return '<div class="custom-quote-item"><div class="cq-text">' + escapeHtml(q.text) + '</div>' +
-        (q.author ? '<div class="cq-author">— ' + escapeHtml(q.author) + '</div>' : '') +
-        '<div class="cq-delete" data-idx="' + i + '">✕</div></div>';
-    }).join('');
+  $('customQuotesList').innerHTML = list.map(function (q, i) {
+    return '<div class="custom-quote-item"><div class="cq-text">' + escapeHtml(q.text) + '</div>' +
+      (q.author ? '<div class="cq-author">— ' + escapeHtml(q.author) + '</div>' : '') +
+      '<div class="cq-delete" data-idx="' + i + '" title="删除">✕</div></div>';
+  }).join('');
   document.querySelectorAll('.cq-delete').forEach(function (btn) {
     btn.addEventListener('click', function () {
+      if (!window.confirm('删除这条收藏？')) return;
       S.quotes.custom.splice(parseInt(btn.dataset.idx, 10), 1);
       Store.save('quotes.json', S.quotes);
       renderCustomQuotes();

@@ -56,6 +56,7 @@ function tick() {
     if (Rules.detectBreak(S)) saveRules();
     renderToday(); renderCheckin(); renderFlames(); renderStreakDots(); renderCalendar(); renderHeatmap();
   }
+  $('greeting').textContent = greeting();
   // 旧版只在启动和跨天时检查，软件开着过 20 点不会提醒；现在每分钟检查，每天最多一次
   if (new Date().getHours() >= S.settings.reminderHour && !isCheckedIn(now) && S.settings.lastReminded !== now) {
     S.settings.lastReminded = now;
@@ -68,6 +69,7 @@ function tick() {
 function applyTheme() {
   document.body.classList.toggle('dark', !!S.settings.darkMode);
   $('settingsThemeToggle').classList.toggle('on', !!S.settings.darkMode);
+  $('reminderHour').value = String(S.settings.reminderHour);
 }
 function toggleDarkMode() {
   S.settings.darkMode = !S.settings.darkMode;
@@ -107,42 +109,47 @@ function bindEvents() {
   on('makeupBtn', doMakeup);
   on('cancelCheckinBtn', cancelCheckin);
 
-  on('medalWallBtn', function () { renderMedalWall(); $('medalWallView').style.display = 'block'; });
-  on('medalWallBack', function () { $('medalWallView').style.display = 'none'; });
+  on('medalWallBtn', function () { renderMedalWall(); openSheet('medalSheet'); });
+  on('settingsBtn', function () { $('settingsResetConfirm').style.display = 'none'; openSheet('settingsSheet'); });
 
   on('calPrev', function () { calMonth.setMonth(calMonth.getMonth() - 1); renderCalendar(); });
   on('calNext', function () { calMonth.setMonth(calMonth.getMonth() + 1); renderCalendar(); });
   on('calToday', function () { calMonth = new Date(); renderCalendar(); });
 
-  on('dayDetailClose', closeDayDetail);
   document.querySelectorAll('.mood-btn').forEach(function (b) { b.addEventListener('click', function () { setMood(b.dataset.mood); }); });
   on('diaryEditBtn', function () { toggleDiaryMode(false); });
   on('diaryPreviewBtn', function () { toggleDiaryMode(true); });
   $('diaryText').addEventListener('blur', saveDiary);
+  // 边写边存（停笔 0.8 秒），关窗口前再存一次，不会因为关软件丢掉正在写的日记
+  var diaryTimer = 0;
+  $('diaryText').addEventListener('input', function () { clearTimeout(diaryTimer); diaryTimer = setTimeout(saveDiary, 800); });
+  window.addEventListener('beforeunload', saveDiary);
   on('uploadShotBtn', uploadScreenshots);
 
   on('quoteRefresh', refreshQuote);
   on('quoteAdd', addCustomQuote);
   on('quoteSave', saveCustomQuote);
-  on('quoteCancel', function () { $('quoteModal').style.display = 'none'; });
+  on('quoteCancel', function () { closeSheet(); });
+  on('customQuotesToggle', toggleCustomQuotes);
 
   on('editTasksBtn', openTaskEditor);
   on('taskSave', saveTaskEdits);
-  on('taskCancel', function () { $('taskModal').style.display = 'none'; });
+  on('taskCancel', function () { closeSheet(); });
 
   on('settingsThemeToggle', toggleDarkMode);
   on('settingsExport', async function () { showToast(await dashboardAPI.exportBackup() ? '备份已导出' : '导出取消'); });
   on('settingsImport', async function () {
     if (await dashboardAPI.importBackup()) { showToast('备份已导入，即将刷新'); setTimeout(function () { location.reload(); }, 1000); }
   });
-  on('settingsReset', function () { $('settingsResetConfirm').style.display = 'inline-flex'; });
+  on('settingsReset', function () { $('settingsResetConfirm').style.display = 'flex'; });
+  $('reminderHour').addEventListener('change', function () {
+    S.settings.reminderHour = +this.value;
+    Store.save('settings.json', S.settings);
+    showToast(S.settings.reminderHour > 23 ? '已关闭打卡提醒' : '每天 ' + S.settings.reminderHour + ':00 后没打卡会提醒你');
+  });
   on('settingsResetYes', resetProgress);
   on('settingsResetNo', function () { $('settingsResetConfirm').style.display = 'none'; });
 
-  document.querySelectorAll('.modal').forEach(function (m) {
-    if (m.id === 'settingsModal') return;   // 设置弹窗有自己的关闭动画
-    m.addEventListener('click', function (e) { if (e.target === m) m.style.display = 'none'; });
-  });
 }
 
 async function init() {
@@ -151,7 +158,9 @@ async function init() {
   if (Rules.detectBreak(S)) saveRules();
   applyTheme();
   renderAll();
+  openDayDetail(currentDate);
   loadAboutIcon();
+  bindShell();
   bindEvents();
   tick();
   setInterval(tick, 60 * 1000);

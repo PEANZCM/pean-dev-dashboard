@@ -103,7 +103,7 @@ function openTaskEditor() {
     box.querySelector('.f-title').focus();
   });
   area.appendChild(add);
-  $('taskModal').style.display = 'flex';
+  openSheet('planSheet');
 }
 
 function saveTaskEdits() {
@@ -131,7 +131,7 @@ function saveTaskEdits() {
   });
   S.plan.stages = next;
   Store.save('plan.json', S.plan);
-  $('taskModal').style.display = 'none';
+  closeSheet();
   renderPlanViews();
   showToast('规划已保存');
 }
