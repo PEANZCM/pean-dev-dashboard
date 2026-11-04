@@ -60,6 +60,30 @@ function closeSheet(immediate) {
   Sheet.closing = setTimeout(done, 300);
 }
 
+// ===== 设置分页：四页共用一个滚动区，选中项换成带色玻璃 =====
+function showSettingsPage(name) {
+  document.querySelectorAll('.set-page').forEach(function (p) { p.classList.toggle('active', p.dataset.page === name); });
+  document.querySelectorAll('.set-nav-btn').forEach(function (b) {
+    var on = b.dataset.page === name;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-selected', on ? 'true' : 'false');
+    b.setAttribute('data-glass', on ? 'tint' : 'clear');
+    Glass.refresh(b);
+  });
+  document.querySelector('.settings-sheet .sheet-body').scrollTop = 0;
+  Glass.relayout();
+}
+
+// ===== 关于软件：版本号和更新记录都来自 CHANGELOG =====
+function renderAbout() {
+  $('aboutVersion').textContent = 'V' + CHANGELOG[0].v;
+  $('aboutLog').innerHTML = CHANGELOG.map(function (x, i) {
+    return '<div class="log-row"><div class="log-head"><b>V' + escapeHtml(x.v) + '</b><span>' + escapeHtml(x.title) + '</span>' +
+      (i ? '' : '<em>最新</em>') + '<time>' + escapeHtml(x.date) + '</time></div><ul>' +
+      x.items.map(function (t) { return '<li>' + escapeHtml(t) + '</li>'; }).join('') + '</ul></div>';
+  }).join('');
+}
+
 function bindShell() {
   var tabs = $('viewTabs');
   Motion.initTabs(tabs, $('tabGlider'), function (tab) { if (tab) showView(tab.dataset.view); });
@@ -71,6 +95,12 @@ function bindShell() {
   window.addEventListener('resize', place);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(place);
   place();
+
+  $('settingsNav').addEventListener('click', function (e) {
+    var b = e.target.closest('.set-nav-btn');
+    if (b) showSettingsPage(b.dataset.page);
+  });
+  renderAbout();
 
   var layer = $('sheetLayer');
   layer.addEventListener('click', function (e) {

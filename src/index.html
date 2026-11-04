@@ -203,65 +203,94 @@
     </div>
   </section>
 
-  <section class="sheet" id="settingsSheet" aria-label="设置">
+  <section class="sheet settings-sheet" id="settingsSheet" aria-label="设置">
     <div class="sheet-head"><h2>设置</h2><button class="icon-btn sm" data-close aria-label="关闭"><svg class="ic"><use href="#i-close"/></svg></button></div>
-    <div class="sheet-body">
-      <div class="set-group">
-        <div class="set-title">外观</div>
-        <div class="set-row"><span>深色模式</span><button class="switch" id="settingsThemeToggle" aria-label="深色模式"><i></i></button></div>
-        <div class="set-row"><span>壁纸</span>
-          <select class="select" id="wallpaperSelect">
-            <option value="auto">跟随主题</option><option value="dawn">晨雾</option><option value="mint">薄荷</option>
-            <option value="aurora">极光</option><option value="sunset">日落</option><option value="ocean">深海</option>
-            <option value="image">自选图片…</option><option value="plain">纯色（不用壁纸）</option>
-          </select>
+    <div class="set-layout">
+      <nav class="set-nav" id="settingsNav" role="tablist" aria-label="设置分页">
+        <button class="set-nav-btn active" data-page="general" role="tab" aria-selected="true"><svg class="ic"><use href="#i-settings"/></svg>通用</button>
+        <button class="set-nav-btn" data-page="ai" role="tab" aria-selected="false"><svg class="ic"><use href="#i-bulb"/></svg>AI</button>
+        <button class="set-nav-btn" data-page="data" role="tab" aria-selected="false"><svg class="ic"><use href="#i-save"/></svg>数据</button>
+        <button class="set-nav-btn" data-page="about" role="tab" aria-selected="false"><svg class="ic"><use href="#i-info"/></svg>关于软件</button>
+      </nav>
+      <div class="sheet-body">
+        <div class="set-page active" data-page="general">
+          <div class="set-group">
+            <div class="set-title">外观</div>
+            <div class="set-row"><span>深色模式</span><button class="switch" id="settingsThemeToggle" aria-label="深色模式"><i></i></button></div>
+            <div class="set-row"><span>壁纸</span>
+              <select class="select" id="wallpaperSelect">
+                <option value="auto">跟随主题</option><option value="dawn">晨雾</option><option value="mint">薄荷</option>
+                <option value="aurora">极光</option><option value="sunset">日落</option><option value="ocean">深海</option>
+                <option value="image">自选图片…</option><option value="plain">纯色（不用壁纸）</option>
+              </select>
+            </div>
+            <div class="set-row"><span>动态壁纸<small>光斑缓慢流动</small></span><button class="switch" id="wallAnimToggle" aria-label="动态壁纸"><i></i></button></div>
+            <div class="set-row"><span>玻璃效果<small>省电只保留模糊，不做折射</small></span>
+              <select class="select" id="glassSelect"><option value="balanced">均衡（按钮折射，推荐）</option><option value="high">完整液态（卡片也折射，配静态壁纸更流畅）</option><option value="off">省电</option></select>
+            </div>
+            <div class="set-row"><span>动效</span>
+              <select class="select" id="motionSelect"><option value="full">完整（Q 弹）</option><option value="reduced">减弱（不拉伸、不回弹）</option><option value="off">关闭</option></select>
+            </div>
+          </div>
+          <div class="set-group">
+            <div class="set-title">提醒</div>
+            <div class="set-row"><span>没打卡时提醒我</span>
+              <select class="select" id="reminderHour">
+                <option value="18">18:00 之后</option><option value="19">19:00 之后</option><option value="20">20:00 之后</option>
+                <option value="21">21:00 之后</option><option value="22">22:00 之后</option><option value="99">不提醒</option>
+              </select>
+            </div>
+          </div>
         </div>
-        <div class="set-row"><span>动态壁纸<small>光斑缓慢流动</small></span><button class="switch" id="wallAnimToggle" aria-label="动态壁纸"><i></i></button></div>
-        <div class="set-row"><span>玻璃效果<small>省电只保留模糊，不做折射</small></span>
-          <select class="select" id="glassSelect"><option value="balanced">均衡（按钮折射，推荐）</option><option value="high">完整液态（卡片也折射，配静态壁纸更流畅）</option><option value="off">省电</option></select>
+        <div class="set-page" data-page="ai">
+          <div class="set-group">
+            <div class="set-title">连接 DeepSeek</div>
+            <div class="set-row"><span>API Key<small id="aiKeyStatus">未填写</small></span>
+              <div class="set-inline"><button class="pill-btn sm" id="aiTest" style="display:none">测试连接</button><button class="pill-btn sm danger" id="aiKeyClear" style="display:none">删除</button></div>
+            </div>
+            <div class="set-row"><input class="input" id="aiKeyInput" type="password" autocomplete="off" spellcheck="false" placeholder="粘贴 sk- 开头的 Key"><button class="pill-btn tint sm" id="aiKeySave">保存</button></div>
+          </div>
+          <div class="set-group">
+            <div class="set-title">教练</div>
+            <div class="set-row"><span>语气</span>
+              <select class="select" id="aiToneSelect"><option value="warm">温和</option><option value="direct">直白</option><option value="roast">毒舌督促</option><option value="custom">自己写</option></select>
+            </div>
+            <textarea class="input" id="aiCustomTone" rows="2" placeholder="描述你想要的语气，比如：像严格但关心人的学长" style="display:none"></textarea>
+            <div class="set-row"><span>模型<small>自动：短文案用快速模型，复盘和规划用深度模型</small></span>
+              <select class="select" id="aiModelSelect"><option value="auto">自动</option><option value="flash">全部快速（flash）</option><option value="pro">全部深度（v4-pro）</option></select>
+            </div>
+          </div>
+          <div class="set-group">
+            <div class="set-title">发给 AI 的内容</div>
+            <div class="set-row"><span>发送日记<small>打开后最近 7 天的日记会发给 DeepSeek</small></span><button class="switch" id="aiDiaryToggle" aria-label="发送日记"><i></i></button></div>
+            <div class="set-row"><span>发送心情<small>打开后最近 7 天的心情会发给 DeepSeek</small></span><button class="switch" id="aiMoodToggle" aria-label="发送心情"><i></i></button></div>
+          </div>
         </div>
-        <div class="set-row"><span>动效</span>
-          <select class="select" id="motionSelect"><option value="full">完整（Q 弹）</option><option value="reduced">减弱（不拉伸、不回弹）</option><option value="off">关闭</option></select>
+        <div class="set-page" data-page="data">
+          <div class="set-group">
+            <div class="set-title">备份</div>
+            <div class="set-row"><span>导出备份</span><button class="pill-btn sm" id="settingsExport"><svg class="ic"><use href="#i-save"/></svg>导出</button></div>
+            <div class="set-row"><span>导入备份</span><button class="pill-btn sm" id="settingsImport"><svg class="ic"><use href="#i-folder"/></svg>导入</button></div>
+          </div>
+          <div class="set-group">
+            <div class="set-title">重置</div>
+            <div class="set-row"><span>重置进度<small>清空打卡、完成记录、日记和心情，保留人生规划</small></span><button class="pill-btn sm danger" id="settingsReset">重置</button></div>
+            <div class="set-confirm" id="settingsResetConfirm" style="display:none">确定清空全部进度？<button class="link-btn danger" id="settingsResetYes">确定清空</button><button class="link-btn" id="settingsResetNo">取消</button></div>
+          </div>
         </div>
-      </div>
-      <div class="set-group">
-        <div class="set-title">AI 教练（DeepSeek）</div>
-        <div class="set-row"><span>API Key<small id="aiKeyStatus">未填写</small></span>
-          <div class="set-inline"><button class="pill-btn sm" id="aiTest" style="display:none">测试连接</button><button class="pill-btn sm danger" id="aiKeyClear" style="display:none">删除</button></div>
+        <div class="set-page" data-page="about">
+          <div class="about">
+            <img class="about-icon-img" id="aboutIconImg" src="" alt="" style="display:none">
+            <div class="about-icon" id="aboutIconFallback"><svg class="ic"><use href="#i-logo"/></svg></div>
+            <div class="about-name">PEAN的开发小天地</div>
+            <div class="about-meta"><span class="about-version" id="aboutVersion"></span> · 制作者：PEAN</div>
+            <button class="pill-btn sm" id="aboutRepo"><svg class="ic"><use href="#i-globe"/></svg>GitHub</button>
+          </div>
+          <div class="set-group">
+            <div class="set-title">更新记录</div>
+            <div id="aboutLog"></div>
+          </div>
         </div>
-        <div class="set-row"><input class="input" id="aiKeyInput" type="password" autocomplete="off" spellcheck="false" placeholder="粘贴 sk- 开头的 Key"><button class="pill-btn tint sm" id="aiKeySave">保存</button></div>
-        <div class="set-row"><span>语气</span>
-          <select class="select" id="aiToneSelect"><option value="warm">温和</option><option value="direct">直白</option><option value="roast">毒舌督促</option><option value="custom">自己写</option></select>
-        </div>
-        <textarea class="input" id="aiCustomTone" rows="2" placeholder="描述你想要的语气，比如：像严格但关心人的学长" style="display:none"></textarea>
-        <div class="set-row"><span>模型<small>自动：短文案用快速模型，复盘和规划用深度模型</small></span>
-          <select class="select" id="aiModelSelect"><option value="auto">自动</option><option value="flash">全部快速（flash）</option><option value="pro">全部深度（v4-pro）</option></select>
-        </div>
-        <div class="set-row"><span>发送日记<small>打开后最近 7 天的日记会发给 DeepSeek</small></span><button class="switch" id="aiDiaryToggle" aria-label="发送日记"><i></i></button></div>
-        <div class="set-row"><span>发送心情<small>打开后最近 7 天的心情会发给 DeepSeek</small></span><button class="switch" id="aiMoodToggle" aria-label="发送心情"><i></i></button></div>
-      </div>
-
-      <div class="set-group">
-        <div class="set-title">提醒</div>
-        <div class="set-row"><span>没打卡时提醒我</span>
-          <select class="select" id="reminderHour">
-            <option value="18">18:00 之后</option><option value="19">19:00 之后</option><option value="20">20:00 之后</option>
-            <option value="21">21:00 之后</option><option value="22">22:00 之后</option><option value="99">不提醒</option>
-          </select>
-        </div>
-      </div>
-      <div class="set-group">
-        <div class="set-title">数据</div>
-        <div class="set-row"><span>导出备份</span><button class="pill-btn sm" id="settingsExport"><svg class="ic"><use href="#i-save"/></svg>导出</button></div>
-        <div class="set-row"><span>导入备份</span><button class="pill-btn sm" id="settingsImport"><svg class="ic"><use href="#i-folder"/></svg>导入</button></div>
-        <div class="set-row"><span>重置进度<small>清空打卡、完成记录、日记和心情，保留人生规划</small></span><button class="pill-btn sm danger" id="settingsReset">重置</button></div>
-        <div class="set-confirm" id="settingsResetConfirm" style="display:none">确定清空全部进度？<button class="link-btn danger" id="settingsResetYes">确定清空</button><button class="link-btn" id="settingsResetNo">取消</button></div>
-      </div>
-      <div class="about">
-        <img class="about-icon-img" id="aboutIconImg" src="" alt="" style="display:none">
-        <div class="about-icon" id="aboutIconFallback"><svg class="ic"><use href="#i-logo"/></svg></div>
-        <div class="about-name">PEAN的开发小天地</div>
-        <div class="about-meta"><span class="about-version">V1.5.0</span> · 制作者：PEAN</div>
       </div>
     </div>
   </section>
@@ -292,6 +321,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="icons.js"></script>
+<script src="js/changelog.js"></script>
 <script src="js/dates.js"></script>
 <script src="js/rules.js"></script>
 <script src="js/plan.js"></script>

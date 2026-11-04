@@ -77,6 +77,7 @@ var SYMBOLS=
   '<path d="M6 6l12 12M18 6 6 18"/></g></symbol>'+
 
 /* —— 灯泡（提示） —— */
+'<symbol id="i-info" viewBox="0 0 24 24">'+s('<circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/>')+'</symbol>'+
 '<symbol id="i-bulb" viewBox="0 0 24 24">'+s(
   '<path d="M12 3a6.2 6.2 0 0 0-4 10.9c.8.7 1 1.6 1 2.6h6c0-1 .2-1.9 1-2.6A6.2 6.2 0 0 0 12 3Z"/>'+
   '<path d="M9.5 20h5M10.5 22.5h3"/>')+'</symbol>'+

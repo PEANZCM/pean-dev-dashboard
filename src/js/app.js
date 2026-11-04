@@ -75,9 +75,10 @@ var GLASS_MAP = [
   ['#viewTabs', 'tabs'], ['#tabGlider', 'glider'], ['.card', 'card'], ['.sheet', 'sheet'],
   ['.checkin-btn', 'blue'], ['.pill-btn.primary', 'blue'], ['.pill-btn.danger', 'red'], ['.pill-btn.tint', 'tint'],
   ['.pill-btn', 'clear'], ['.icon-btn', 'clear'], ['.mood-btn', 'clear'], ['.seg-btn', 'clear'],
+  ['.set-nav-btn.active', 'tint'], ['.set-nav-btn', 'clear'],
   ['.task-edit-add-btn', 'tint'], ['.task-edit-del-btn', 'red']
 ];
-var PRESS = '.pill-btn, .icon-btn, .checkin-btn, .mood-btn, .seg-btn, .task-edit-add-btn, .task-edit-del-btn';
+var PRESS = '.pill-btn, .icon-btn, .checkin-btn, .mood-btn, .seg-btn, .set-nav-btn, .task-edit-add-btn, .task-edit-del-btn';
 
 // 给一块区域里的按钮都装上玻璃和弹簧（编辑器这种动态生成的内容也要调用）
 function decorate(root) {
@@ -165,6 +166,7 @@ function bindEvents() {
 
   on('medalWallBtn', function () { renderMedalWall(); openSheet('medalSheet'); });
   on('settingsBtn', function () { $('settingsResetConfirm').style.display = 'none'; openSheet('settingsSheet'); });
+  on('aboutRepo', function () { dashboardAPI.openExternal('https://github.com/PEANZCM/pean-dev-dashboard'); });
 
   on('calPrev', function () { calMonth.setMonth(calMonth.getMonth() - 1); renderCalendar(); });
   on('calNext', function () { calMonth.setMonth(calMonth.getMonth() + 1); renderCalendar(); });
