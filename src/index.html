@@ -13,6 +13,9 @@
 <canvas id="wallCanvas"></canvas>
 <div id="wallImage"></div>
 
+<!-- 顶部渐变模糊：四层模糊 + 一层渐变底色，在顶栏背后向下淡出 -->
+<div class="top-fade" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+
 <!-- ===== 顶栏：品牌 · 标签 · 奖章 / 设置 ===== -->
 <header class="topbar">
   <div class="brand">
@@ -236,7 +239,7 @@
         <img class="about-icon-img" id="aboutIconImg" src="" alt="" style="display:none">
         <div class="about-icon" id="aboutIconFallback"><svg class="ic"><use href="#i-logo"/></svg></div>
         <div class="about-name">PEAN的开发小天地</div>
-        <div class="about-meta"><span class="about-version">V1.4.2</span> · 制作者：PEAN</div>
+        <div class="about-meta"><span class="about-version">V1.4.3</span> · 制作者：PEAN</div>
       </div>
     </div>
   </section>

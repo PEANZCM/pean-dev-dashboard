@@ -71,7 +71,7 @@ function tick() {
 // ===== 外观：玻璃 / 动效 / 壁纸 =====
 // 哪些元素是什么玻璃：按钮自身是玻璃；卡片、顶栏、标签栏、弹层是「容器玻璃」
 var GLASS_MAP = [
-  ['.topbar', 'bar'], ['#viewTabs', 'tabs'], ['#tabGlider', 'glider'], ['.card', 'card'], ['.sheet', 'sheet'],
+  ['#viewTabs', 'tabs'], ['#tabGlider', 'glider'], ['.card', 'card'], ['.sheet', 'sheet'],
   ['.checkin-btn', 'blue'], ['.pill-btn.primary', 'blue'], ['.pill-btn.danger', 'red'], ['.pill-btn.tint', 'tint'],
   ['.pill-btn', 'clear'], ['.icon-btn', 'clear'], ['.mood-btn', 'clear'], ['.seg-btn', 'clear'],
   ['.task-edit-add-btn', 'tint'], ['.task-edit-del-btn', 'red']

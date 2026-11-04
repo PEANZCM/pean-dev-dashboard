@@ -7,7 +7,7 @@
 //  · 三通道分别位移 = 色散
 //  用法：HTML 上写 data-glass="种类"
 //    按钮类（自身就是玻璃）：clear / tint / blue / green / red / glider / lens
-//    容器类（里面还有玻璃按钮）：card / bar / tabs / sheet
+//    容器类（里面还有玻璃按钮）：card / tabs / sheet
 //  容器玻璃的两个关键点：
 //  1. 容器不能自己挂 backdrop-filter（会成为里面按钮的「背景根」，按钮只能看到容器、看不到壁纸），
 //     所以给容器塞一个 .glass-bg 底层来挂滤镜
@@ -19,7 +19,7 @@ var Glass = (function () {
   'use strict';
 
   var NS = 'http://www.w3.org/2000/svg';
-  var CONTAINERS = { card: 1, bar: 1, tabs: 1, sheet: 1 };
+  var CONTAINERS = { card: 1, tabs: 1, sheet: 1 };
 
   // 原型定稿参数
   var P = { refr: 0.6, edge: 0.6, chroma: 0.18, sat: 1.3 };
@@ -36,7 +36,6 @@ var Glass = (function () {
     lens:   { blur: 0.3, k: 1.2, max: 40, mag: 0.2, chroma: 0.08, l: [255, 255, 255, 0.05], d: [255, 255, 255, 0.04] },  // 滑块被拖起时：透明放大镜
     tabs:   { blur: 12,  k: 0.5, max: 18, l: [255, 255, 255, 0.28], d: [22, 24, 32, 0.42] },
     card:   { blur: 24,  k: 0.5, max: 24, l: [255, 255, 255, 0.48], d: [22, 24, 32, 0.56] },
-    bar:    { blur: 22,  k: 0.4, max: 18, l: [255, 255, 255, 0.46], d: [14, 15, 21, 0.55] },
     sheet:  { blur: 30,  k: 0.3, max: 24, l: [255, 255, 255, 0.74], d: [24, 26, 34, 0.80] }
   };
 
