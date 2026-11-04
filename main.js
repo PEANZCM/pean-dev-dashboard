@@ -1,6 +1,7 @@
-const { app, BrowserWindow, ipcMain, dialog, Notification, nativeImage, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, Notification, nativeImage, shell, safeStorage } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const ai = require('./ai.js');
 
 // 测试用：PEAN_USERDATA=某个目录 时用独立数据目录启动，不碰真实数据
 if (process.env.PEAN_USERDATA) app.setPath('userData', path.resolve(process.env.PEAN_USERDATA));
@@ -12,7 +13,7 @@ const SHOT_DIR = path.join(DATA_DIR, 'screenshots');
 // 渲染进程只能读写这些数据文件（防止 ../ 之类的路径穿越）；备份也用这份清单
 const DATA_FILES = [
   'checkin.json', 'streak.json', 'flame.json', 'medals.json', 'tasks.json', 'plan.json', 'progress.json',
-  'meta.json', 'diary.json', 'mood.json', 'quotes.json', 'settings.json', 'screenshots.json'
+  'meta.json', 'diary.json', 'mood.json', 'quotes.json', 'settings.json', 'screenshots.json', 'ai.json'
 ];
 
 function dataPath(name) {
@@ -43,6 +44,9 @@ function createWindow() {
     frame: true
   });
 
+  // 窗口只显示本地页面：不跳转、不弹新窗口（链接交给系统浏览器），主进程握着 API Key，这里要收紧
+  mainWindow.webContents.on('will-navigate', (e, url) => { if (!url.startsWith('file:')) e.preventDefault(); });
+  mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   mainWindow.loadFile(path.join(__dirname, 'src', 'index.html'));
   mainWindow.once('ready-to-show', () => mainWindow.show());
   mainWindow.on('closed', () => { mainWindow = null; });
@@ -198,6 +202,33 @@ ipcMain.handle('backup:import', async () => {
     }
     return true;
   } catch (err) { return null; }
+});
+
+// ===== IPC: AI =====
+// Key 用系统加密（Windows DPAPI）保存在数据目录之外，不进备份，渲染进程读不到
+const KEY_FILE = path.join(app.getPath('userData'), 'ai-key.bin');
+// 测试用：只接受本机地址，防止 Key 被发到别处
+const AI_BASE = /^http:\/\/127\.0\.0\.1:\d+$/.test(process.env.PEAN_AI_BASE || '') ? process.env.PEAN_AI_BASE : undefined;
+
+function readKey() {
+  try { return fs.existsSync(KEY_FILE) ? safeStorage.decryptString(fs.readFileSync(KEY_FILE)) : null; } catch (err) { return null; }
+}
+ipcMain.handle('ai:status', () => ({ hasKey: !!readKey(), canEncrypt: safeStorage.isEncryptionAvailable() }));
+ipcMain.handle('ai:setKey', (e, key) => {
+  const k = String(key || '').trim();
+  if (!k || /\s/.test(k)) return { ok: false, error: 'Key 格式不对' };
+  if (!safeStorage.isEncryptionAvailable()) return { ok: false, error: '这台电脑无法加密保存 Key' };
+  fs.writeFileSync(KEY_FILE, safeStorage.encryptString(k));
+  return { ok: true };
+});
+ipcMain.handle('ai:clearKey', () => { try { fs.unlinkSync(KEY_FILE); } catch (err) {} return true; });
+ipcMain.handle('ai:chat', (e, o) => {
+  const key = readKey();
+  if (!key) return { ok: false, noKey: true, error: '还没有填 API Key' };
+  return ai.chat(key, {
+    system: String(o.system || ''), messages: Array.isArray(o.messages) ? o.messages : [],
+    model: o.model, deep: !!o.deep, json: !!o.json, maxTokens: o.maxTokens
+  }, { base: AI_BASE });
 });
 
 // ===== IPC: 打开外部链接 =====

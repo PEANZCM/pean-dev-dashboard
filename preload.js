@@ -14,6 +14,12 @@ contextBridge.exposeInMainWorld('dashboardAPI', {
   pickWallpaper: () => ipcRenderer.invoke('wallpaper:pick'),
   readWallpaper: () => ipcRenderer.invoke('wallpaper:read'),
 
+  // AI（Key 只存在主进程，这里只有存、删、用，没有读）
+  aiStatus: () => ipcRenderer.invoke('ai:status'),
+  aiSetKey: (key) => ipcRenderer.invoke('ai:setKey', key),
+  aiClearKey: () => ipcRenderer.invoke('ai:clearKey'),
+  aiChat: (o) => ipcRenderer.invoke('ai:chat', o),
+
   // 系统通知
   showNotification: (title, body) => ipcRenderer.invoke('notification:show', title, body),
 

@@ -541,3 +541,23 @@ body.glass-on .seg-btn.active{color:var(--ink);box-shadow:inset 0 0 0 1.5px var(
 body.glass-on .glass:not(.glass-colored){text-shadow:0 0 6px color-mix(in srgb,var(--card-solid) 70%,transparent)}
 body.glass-on .diary-editor,body.glass-on .diary-preview{background:color-mix(in srgb,var(--card-solid) 62%,transparent)}
 body.dark.glass-on [data-glass=tint]{color:#fff}
+
+/* ---------- 17. AI 教练 ---------- */
+.review-card{margin-bottom:20px}
+.ai-review{font-size:14px;line-height:1.7;overflow-wrap:anywhere}
+.ai-review h3{margin:10px 0 2px;font-size:14px;font-weight:800}
+.ai-review p,.ai-review ul,.ai-review ol{margin:2px 0}
+.ai-review ul,.ai-review ol{padding-left:20px}
+.ai-box{padding:14px;border-radius:var(--r-lg);background:var(--fill);display:flex;flex-direction:column;gap:8px;align-items:flex-start;margin-bottom:12px}
+.ai-box .input{width:100%}
+.ai-box-title{font-size:13px;font-weight:800}
+.ai-result{width:100%}
+.ai-summary{font-size:13.5px;font-weight:700;margin-bottom:4px}
+.ai-diff{font-size:12.5px;color:var(--ink-2);line-height:1.6}
+.ai-actions{display:flex;gap:8px;margin-top:8px}
+.ai-sub{margin:2px 0 6px;padding:10px 12px;border-radius:var(--r-sm);background:var(--tint)}
+.ai-split{margin-right:0;flex:none}
+.set-inline{display:flex;gap:6px}
+.set-row .input{flex:1;min-width:0}
+#aiKeyInput{padding:6px 10px}
+#aiCustomTone{margin-bottom:10px}

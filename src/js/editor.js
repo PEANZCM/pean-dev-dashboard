@@ -27,6 +27,11 @@ function editorRow(item) {
   var del = el('button', 'task-edit-del-btn', { textContent: '✕', title: '删除此条' });
   del.addEventListener('click', function () { row.remove(); });
   row.appendChild(input);
+  if (!week) {
+    var split = el('button', 'task-edit-add-btn ai-split', { textContent: '拆解', title: '让 AI 拆成小步骤' });
+    split.addEventListener('click', function () { breakdownTask(row, split); });
+    row.appendChild(split);
+  }
   row.appendChild(del);
   return row;
 }
@@ -90,11 +95,12 @@ function editorStage(s) {
   return box;
 }
 
-function openTaskEditor() {
+// list：要显示的规划（打开时是已保存的规划，用 AI 草稿时是草稿）；这里只改界面，保存才写入
+function renderEditor(list) {
   var area = $('taskEditArea');
   area.innerHTML = '';
   var stages = el('div', 'plan-edit-stages');
-  S.plan.stages.forEach(function (s) { stages.appendChild(editorStage(s)); });
+  list.forEach(function (s) { stages.appendChild(editorStage(s)); });
   area.appendChild(stages);
   var add = el('button', 'task-edit-add-btn plan-add-stage', { textContent: '+ 新增阶段' });
   add.addEventListener('click', function () {
@@ -103,13 +109,18 @@ function openTaskEditor() {
     box.querySelector('.f-title').focus();
   });
   area.appendChild(add);
-  openSheet('planSheet');
+  mountPlanAssistant(area);
   decorate(area);
 }
 
-function saveTaskEdits() {
-  var old = {};
-  S.plan.stages.forEach(function (s) { old[s.id] = s; });
+function openTaskEditor() {
+  renderEditor(S.plan.stages);
+  openSheet('planSheet');
+  decorate($('taskEditArea'));
+}
+
+// 编辑器当前内容（含还没保存的修改）
+function collectStages() {
   var next = [];
   document.querySelectorAll('#taskEditArea .task-edit-stage').forEach(function (box) {
     var v = function (c) { return box.querySelector(c).value.trim(); };
@@ -121,8 +132,14 @@ function saveTaskEdits() {
       else { var st = Plan.splitStar(text); items.push({ type: 'task', id: row.dataset.id, text: st.text, star: st.star }); }
     });
     next.push({ id: box.dataset.id, title: v('.f-title') || '未命名阶段', time: v('.f-time'), desc: v('.f-desc'), output: v('.f-output'), icon: v('.f-icon'), items: items });
-    delete old[box.dataset.id];
   });
+  return next;
+}
+
+function saveTaskEdits() {
+  var old = {}, next = collectStages();
+  S.plan.stages.forEach(function (s) { old[s.id] = s; });
+  next.forEach(function (s) { delete old[s.id]; });
   // 被删掉的阶段：有完成记录的归档，进度记录本身一直保留
   Object.keys(old).forEach(function (id) {
     if (Plan.stageStats(old[id], S.progress).done > 0) {

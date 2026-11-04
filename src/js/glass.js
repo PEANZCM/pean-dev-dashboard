@@ -174,17 +174,24 @@ var Glass = (function () {
     // 滑块不挖洞：它变成透镜时要折射的正是下面的标签栏和文字，而不是最底下的壁纸
     var holes = items.filter(function (x) { return x.host === hostIt && x.el.offsetParent && !x.el.disabled && !x.el.classList.contains('tab-glider'); });
     if (!holes.length) { bg.style.webkitMaskImage = bg.style.maskImage = ''; return; }
-    var shapes = holes.map(function (it) {
-      var r = layoutIn(it.el, hostIt.el), xf = it.el._xf;
+    // 弹层里的滚动区：滚出视野的按钮不能挖洞，否则底栏上会露出一块块没有磨砂的形状
+    var body = hostIt.el.querySelector('.sheet-body'), clip = body && body.offsetParent ? layoutIn(body, hostIt.el) : null;
+    var free = '', clipped = '';
+    holes.forEach(function (it) {
+      var r = layoutIn(it.el, hostIt.el), xf = it.el._xf, inBody = clip && body.contains(it.el);
+      if (inBody && (r.y + r.h < clip.y || r.y > clip.y + clip.h)) return;
       var rad = Math.min(parseFloat(getComputedStyle(it.el).borderTopLeftRadius) || 0, r.w / 2, r.h / 2);
       var cx = r.x + r.w / 2, cy = r.y + r.h / 2;
       // 和元素自身的 transform 完全一致：以中心为原点的线性变换 + 平移
       var m = xf ? [xf.a, xf.b, xf.c, xf.d, cx + xf.tx - (xf.a * cx + xf.c * cy), cy + xf.ty - (xf.b * cx + xf.d * cy)] : null;
-      return '<rect x="' + r.x.toFixed(1) + '" y="' + r.y.toFixed(1) + '" width="' + r.w + '" height="' + r.h + '" rx="' + rad.toFixed(1) + '"' +
+      var rect = '<rect x="' + r.x.toFixed(1) + '" y="' + r.y.toFixed(1) + '" width="' + r.w + '" height="' + r.h + '" rx="' + rad.toFixed(1) + '"' +
         (m ? ' transform="matrix(' + m.map(function (v) { return v.toFixed(4); }).join(' ') + ')"' : '') + '/>';
-    }).join('');
-    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + W + '" height="' + H + '"><defs><mask id="m">' +
-      '<rect width="' + W + '" height="' + H + '" fill="#fff"/><g fill="#000">' + shapes + '</g></mask></defs>' +
+      if (inBody) clipped += rect; else free += rect;
+    });
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + W + '" height="' + H + '"><defs>' +
+      (clip ? '<clipPath id="c"><rect x="' + clip.x + '" y="' + clip.y + '" width="' + clip.w + '" height="' + clip.h + '"/></clipPath>' : '') +
+      '<mask id="m"><rect width="' + W + '" height="' + H + '" fill="#fff"/><g fill="#000">' + free + '</g>' +
+      (clipped ? '<g fill="#000" clip-path="url(#c)">' + clipped + '</g>' : '') + '</mask></defs>' +
       '<rect width="' + W + '" height="' + H + '" fill="#fff" mask="url(#m)"/></svg>';
     var url = 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '")';
     bg.style.webkitMaskImage = bg.style.maskImage = url;

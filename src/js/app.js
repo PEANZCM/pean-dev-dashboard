@@ -13,9 +13,10 @@ var DEFAULTS = {
   'mood.json': { moods: {} },
   'quotes.json': { custom: [], lastShownDate: null, currentQuote: null },
   'settings.json': { darkMode: false, reminderHour: 20, lastReminded: null, wallpaper: 'auto', wallAnimated: true, glass: 'balanced', motion: 'full' },
-  'screenshots.json': { shots: {} }
+  'screenshots.json': { shots: {} },
+  'ai.json': { opener: null, review: null }
 };
-var KEYS = { checkin: 'checkin.json', streak: 'streak.json', flame: 'flame.json', medals: 'medals.json', diary: 'diary.json', mood: 'mood.json', quotes: 'quotes.json', settings: 'settings.json', shots: 'screenshots.json' };
+var KEYS = { checkin: 'checkin.json', streak: 'streak.json', flame: 'flame.json', medals: 'medals.json', diary: 'diary.json', mood: 'mood.json', quotes: 'quotes.json', settings: 'settings.json', shots: 'screenshots.json', ai: 'ai.json' };
 
 async function loadAll() {
   for (var k in KEYS) S[k] = await Store.load(KEYS[k], JSON.parse(JSON.stringify(DEFAULTS[KEYS[k]])));
@@ -24,7 +25,7 @@ async function loadAll() {
     S.medals.labelMemory[t] = S.medals.labelMemory[t] || [];
   });
   var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-  [['reminderHour', 20], ['wallpaper', 'auto'], ['wallAnimated', true], ['glass', 'balanced'], ['motion', reduce ? 'reduced' : 'full']].forEach(function (kv) {
+  [['reminderHour', 20], ['wallpaper', 'auto'], ['wallAnimated', true], ['glass', 'balanced'], ['motion', reduce ? 'reduced' : 'full'], ['aiTone', 'warm'], ['aiModel', 'auto'], ['aiDiary', false], ['aiMood', false]].forEach(function (kv) {
     if (S.settings[kv[0]] == null) S.settings[kv[0]] = kv[1];
   });
 
@@ -47,7 +48,7 @@ async function loadAll() {
 function renderAll() {
   renderToday(); renderCheckin(); renderFlames(); renderStreakDots();
   renderPlanViews(); renderCalendar(); renderHeatmap();
-  showDailyQuote(); renderCustomQuotes();
+  showDailyQuote(); renderCustomQuotes(); renderReview();
 }
 
 // ===== 跨天 + 晚间提醒：每分钟检查一次 =====
@@ -64,7 +65,7 @@ function tick() {
   if (new Date().getHours() >= S.settings.reminderHour && !isCheckedIn(now) && S.settings.lastReminded !== now) {
     S.settings.lastReminded = now;
     Store.save('settings.json', S.settings);
-    dashboardAPI.showNotification('PEAN的开发小天地', '今天还没打卡哦！坚持下去，别断了连续天数');
+    reminderText().then(function (t) { dashboardAPI.showNotification('PEAN的开发小天地', t); });
   }
 }
 
@@ -137,6 +138,8 @@ async function resetProgress() {
   S.progress = { done: {} };
   S.diary = { entries: {} };
   S.mood = { moods: {} };
+  S.ai = { opener: null, review: null };   // AI 的开场白和复盘是根据旧进度写的，一起清掉
+  Store.save('ai.json', S.ai);
   saveRules();
   await Store.save('progress.json', S.progress);
   await Store.save('diary.json', S.diary);
@@ -224,7 +227,9 @@ async function init() {
   bindShell();
   bindHeatmap();
   bindEvents();
+  bindAI();
   tick();
+  startAI();
   setInterval(tick, 60 * 1000);
 }
 

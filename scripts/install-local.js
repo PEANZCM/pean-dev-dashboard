@@ -14,7 +14,7 @@ const INSTALL = path.join(process.env.LOCALAPPDATA, 'LearningDashboard');
 const EXE = path.join(INSTALL, 'PEAN的开发小天地.exe');
 const ASAR = path.join(INSTALL, 'resources', 'app.asar');
 const DATA = path.join(process.env.APPDATA, 'learning-dashboard', 'data');
-const FILES = ['main.js', 'preload.js', 'package.json', 'src', 'build/icon.ico'];
+const FILES = ['main.js', 'preload.js', 'ai.js', 'package.json', 'src', 'build/icon.ico'];
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 function running() {

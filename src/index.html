@@ -100,7 +100,7 @@
 
         <section class="card quote-card">
           <div class="card-head small">
-            <h3>今日一句</h3>
+            <h3 id="quoteCardTitle">今日一句</h3>
             <div class="head-tools">
               <button class="icon-btn sm" id="quoteRefresh" title="换一条" aria-label="换一条"><svg class="ic"><use href="#i-refresh"/></svg></button>
               <button class="icon-btn sm" id="quoteAdd" title="收藏一句" aria-label="收藏一句"><svg class="ic"><use href="#i-plus"/></svg></button>
@@ -172,6 +172,11 @@
       </section>
     </div>
 
+    <section class="card review-card">
+      <div class="card-head"><h2>本周复盘</h2><div class="head-tools"><span class="muted" id="aiReviewMeta"></span><button class="pill-btn tint sm" id="aiReviewBtn" style="display:none">生成复盘</button></div></div>
+      <div class="ai-review muted" id="aiReviewBody"></div>
+    </section>
+
     <section class="card heatmap-card">
       <div class="card-head"><h2>打卡热力图</h2><span class="muted" id="heatmapSummary">最近一年</span></div>
       <div class="heatmap" id="heatmap">
@@ -220,6 +225,23 @@
         </div>
       </div>
       <div class="set-group">
+        <div class="set-title">AI 教练（DeepSeek）</div>
+        <div class="set-row"><span>API Key<small id="aiKeyStatus">未填写</small></span>
+          <div class="set-inline"><button class="pill-btn sm" id="aiTest" style="display:none">测试连接</button><button class="pill-btn sm danger" id="aiKeyClear" style="display:none">删除</button></div>
+        </div>
+        <div class="set-row"><input class="input" id="aiKeyInput" type="password" autocomplete="off" spellcheck="false" placeholder="粘贴 sk- 开头的 Key"><button class="pill-btn tint sm" id="aiKeySave">保存</button></div>
+        <div class="set-row"><span>语气</span>
+          <select class="select" id="aiToneSelect"><option value="warm">温和</option><option value="direct">直白</option><option value="roast">毒舌督促</option><option value="custom">自己写</option></select>
+        </div>
+        <textarea class="input" id="aiCustomTone" rows="2" placeholder="描述你想要的语气，比如：像严格但关心人的学长" style="display:none"></textarea>
+        <div class="set-row"><span>模型<small>自动：短文案用快速模型，复盘和规划用深度模型</small></span>
+          <select class="select" id="aiModelSelect"><option value="auto">自动</option><option value="flash">全部快速（flash）</option><option value="pro">全部深度（v4-pro）</option></select>
+        </div>
+        <div class="set-row"><span>发送日记<small>打开后最近 7 天的日记会发给 DeepSeek</small></span><button class="switch" id="aiDiaryToggle" aria-label="发送日记"><i></i></button></div>
+        <div class="set-row"><span>发送心情<small>打开后最近 7 天的心情会发给 DeepSeek</small></span><button class="switch" id="aiMoodToggle" aria-label="发送心情"><i></i></button></div>
+      </div>
+
+      <div class="set-group">
         <div class="set-title">提醒</div>
         <div class="set-row"><span>没打卡时提醒我</span>
           <select class="select" id="reminderHour">
@@ -239,7 +261,7 @@
         <img class="about-icon-img" id="aboutIconImg" src="" alt="" style="display:none">
         <div class="about-icon" id="aboutIconFallback"><svg class="ic"><use href="#i-logo"/></svg></div>
         <div class="about-name">PEAN的开发小天地</div>
-        <div class="about-meta"><span class="about-version">V1.4.3</span> · 制作者：PEAN</div>
+        <div class="about-meta"><span class="about-version">V1.5.0</span> · 制作者：PEAN</div>
       </div>
     </div>
   </section>
@@ -273,6 +295,7 @@
 <script src="js/dates.js"></script>
 <script src="js/rules.js"></script>
 <script src="js/plan.js"></script>
+<script src="js/coach.js"></script>
 <script src="js/util.js"></script>
 <script src="js/spring.js"></script>
 <script src="js/glass.js"></script>
@@ -284,6 +307,7 @@
 <script src="js/library.js"></script>
 <script src="js/medals.js"></script>
 <script src="js/editor.js"></script>
+<script src="js/ai.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
