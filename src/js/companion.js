@@ -109,7 +109,9 @@ function renderStudy() {
   $('studyTotal').textContent = total ? '今天已学 ' + Review.duration(total) : '';
   var btn = $('studyBtn');
   btn.textContent = run ? '结束' : '开始学习';
-  var kind = run ? 'red' : 'blue';
+  // 结束平时是普通玻璃，鼠标移上去才变红
+  var kind = run ? 'clear' : 'blue';
+  btn.classList.toggle('ending', !!run);
   if (btn.getAttribute('data-glass') !== kind) { btn.setAttribute('data-glass', kind); Glass.refresh(btn); }
   renderOrbStatus();
 }

@@ -87,6 +87,8 @@ h1,h2,h3,p{margin:0}
 .pill-btn.primary:hover{background:var(--accent);filter:brightness(1.08)}
 .pill-btn.danger{color:var(--danger);background:rgba(255,59,48,.09)}
 .pill-btn.subtle{background:transparent;color:var(--ink-2)}
+#studyBtn.ending{color:var(--ink)}
+#studyBtn.ending:hover,#studyBtn.ending:focus-visible{color:#fff;filter:none;background:rgba(255,59,48,.62)}
 .pill-btn.subtle:hover:not(:disabled){background:var(--fill)}
 .pill-btn:disabled{opacity:.38}
 
@@ -531,6 +533,8 @@ body.dark.glass-on .glass::after,body.dark.glass-on .glass-bg::after{
   background:linear-gradient(135deg,rgba(255,255,255,.34) 0%,rgba(255,255,255,.07) 32%,rgba(255,255,255,.02) 62%,rgba(255,255,255,.18) 100%);
 }
 body.glass-on .glass:not(.tab-glider){position:relative}
+/* 普通按钮的悬停底色不能盖掉玻璃自己的颜色，否则有色按钮一悬停就褪色 */
+body.glass-on .glass:hover:not(:disabled){background:rgba(var(--g-rgb),calc(var(--g-a) + .08))}
 body.glass-on .glass-host{background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none}
 body.glass-on .glass-bg{position:absolute;inset:0;border-radius:inherit;pointer-events:none}
 body.glass-on .glass-host > :not(.glass-bg):not(.tab-glider){position:relative}
