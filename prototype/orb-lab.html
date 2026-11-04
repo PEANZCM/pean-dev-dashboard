@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 思考图标实验室</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;display:grid;grid-template-columns:minmax(0,1fr) 300px;height:100vh;font:14px/1.5 -apple-system,"Segoe UI","Microsoft YaHei",sans-serif;background:#0b0c10;color:#f4f5f8}
+  .stages{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));min-width:0}
+  .stage{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;padding:20px}
+  .stage.dark{background:#07080c}
+  .stage.light{background:#f2f3f8}
+  .stage.wall{background:linear-gradient(145deg,#0b2a7a,#0a7f8f 55%,#0d4a3a)}
+  .stage canvas{display:block}
+  .row{display:flex;align-items:center;gap:22px}
+  .panel{overflow:auto;padding:16px;background:#14161d;border-left:1px solid #262a35}
+  .state{font-weight:700;margin-bottom:10px}
+  .btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+  button{height:34px;border:0;border-radius:10px;background:#272b38;color:#fff;font:inherit;font-weight:600;cursor:pointer}
+  button:hover{background:#343a4b}
+  button.main{grid-column:1/-1;background:#0a6cff}
+  label{display:block;margin-bottom:10px;font-size:12.5px;color:#aeb4c4}
+  label b{float:right;color:#fff;font-weight:600}
+  input[type=range]{width:100%;margin:2px 0 0}
+  .colors{display:flex;gap:14px;margin-bottom:12px}
+  .colors label{flex:1;margin:0}
+  input[type=color]{width:100%;height:30px;padding:0;border:0;background:none}
+  textarea{width:100%;height:120px;margin:8px 0;border:1px solid #2c3140;border-radius:8px;background:#0e1016;color:#aeb4c4;font:11px/1.5 Consolas,monospace;resize:vertical}
+  .pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+</style>
+</head>
+<body>
+  <div class="stages">
+    <div class="stage dark" data-dark="1"></div>
+    <div class="stage light" data-dark="0"></div>
+    <div class="stage wall" data-dark="1"></div>
+  </div>
+  <aside class="panel">
+    <div class="state" id="state">待命</div>
+    <div class="btns">
+      <button class="main" id="bThink">开始思考</button>
+      <button id="bDone">完成</button>
+      <button id="bCancel">取消</button>
+      <button id="bFail">失败</button>
+      <button id="bFast">秒回测试</button>
+      <button id="bChaos" style="grid-column:1/-1">连续打断测试</button>
+    </div>
+    <div class="colors">
+      <label>对勾绿<input type="color" id="green"></label>
+      <label>失败红<input type="color" id="red"></label>
+    </div>
+    <div id="sliders"></div>
+    <button id="bReset" style="width:100%">恢复默认</button>
+    <textarea id="json" spellcheck="false"></textarea>
+    <div class="pair"><button id="bCopy">复制参数</button><button id="bApply">应用参数</button></div>
+  </aside>
+  <script src="orb.js"></script>
+  <script src="orb-lab.js"></script>
+</body>
+</html>

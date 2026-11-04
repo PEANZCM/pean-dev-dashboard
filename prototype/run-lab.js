@@ -1,4 +1,4 @@
-// 用和正式软件同一个 Electron 打开原型：npm run lab
+// 用和正式软件同一个 Electron 打开原型：npm run lab，AI 思考图标：npm run orb
 const { app, BrowserWindow } = require('electron');
 const path = require('path');
 
@@ -8,7 +8,7 @@ app.whenReady().then(() => {
     backgroundColor: '#000000', autoHideMenuBar: true,
     webPreferences: { contextIsolation: true, nodeIntegration: false, backgroundThrottling: false }
   });
-  win.loadFile(path.join(__dirname, 'index.html'));
+  win.loadFile(path.join(__dirname, process.argv.includes('orb') ? 'orb-lab.html' : 'index.html'));
 });
 
 app.on('window-all-closed', () => app.quit());

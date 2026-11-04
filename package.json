@@ -6,6 +6,7 @@
   "scripts": {
     "start": "electron .",
     "lab": "electron prototype/run-lab.js",
+    "orb": "electron prototype/run-lab.js orb",
     "test": "node --test tests/*.test.js",
     "verify": "node tests/verify-migration.js",
     "install-local": "node scripts/install-local.js",
