@@ -85,10 +85,8 @@ h1,h2,h3,p{margin:0}
 .pill-btn.tint:hover{background:var(--tint-strong)}
 .pill-btn.primary{background:var(--accent);color:#fff}
 .pill-btn.primary:hover{background:var(--accent);filter:brightness(1.08)}
-.pill-btn.danger{color:var(--danger);background:rgba(255,59,48,.09)}
 .pill-btn.subtle{background:transparent;color:var(--ink-2)}
 #studyBtn.ending{color:var(--ink)}
-#studyBtn.ending:hover,#studyBtn.ending:focus-visible{color:#fff;filter:none;background:rgba(255,59,48,.62)}
 .pill-btn.subtle:hover:not(:disabled){background:var(--fill)}
 .pill-btn:disabled{opacity:.38}
 
@@ -100,7 +98,7 @@ h1,h2,h3,p{margin:0}
 .icon-btn:active{transform:scale(.92)}
 .icon-btn.sm{width:30px;height:30px;font-size:15px}
 .link-btn{font-size:12.5px;font-weight:650;color:var(--accent);padding:2px 4px}
-.link-btn.danger{color:var(--danger)}
+.link-btn.danger:hover,.link-btn.danger:focus-visible{color:var(--danger)}
 .field-label{font-size:12px;font-weight:700;color:var(--muted)}
 
 .input,.select{
@@ -484,8 +482,7 @@ h1,h2,h3,p{margin:0}
 }
 .task-edit-input:focus{border-color:rgba(10,108,255,.45);box-shadow:0 0 0 3px var(--tint)}
 .task-edit-row.week-row .task-edit-input{font-weight:700;color:var(--accent-2)}
-.task-edit-del-btn{flex:none;height:32px;min-width:32px;padding:0 8px;border-radius:10px;font-size:12px;font-weight:700;color:var(--danger);background:rgba(255,59,48,.08)}
-.task-edit-del-btn:hover{background:rgba(255,59,48,.16)}
+.task-edit-del-btn{flex:none;height:32px;min-width:32px;padding:0 8px;border-radius:10px;font-size:12px;font-weight:700;color:var(--ink);background:var(--fill)}
 .task-edit-add-btn{height:30px;padding:0 12px;margin-right:6px;border-radius:10px;font-size:12.5px;font-weight:650;color:var(--accent);background:var(--tint)}
 .task-edit-add-btn:hover{background:var(--tint-strong)}
 .task-edit-add-btn.week{color:var(--accent-2);background:rgba(91,91,240,.09)}
@@ -535,6 +532,10 @@ body.dark.glass-on .glass::after,body.dark.glass-on .glass-bg::after{
 body.glass-on .glass:not(.tab-glider){position:relative}
 /* 普通按钮的悬停底色不能盖掉玻璃自己的颜色，否则有色按钮一悬停就褪色 */
 body.glass-on .glass:hover:not(:disabled){background:rgba(var(--g-rgb),calc(var(--g-a) + .08))}
+/* 危险操作平时是普通颜色，鼠标移上去或键盘选中才变红 */
+body.glass-on .pill-btn.danger:hover:not(:disabled),body.glass-on .pill-btn.danger:focus-visible,
+body.glass-on #studyBtn.ending:hover,body.glass-on #studyBtn.ending:focus-visible,
+body.glass-on .task-edit-del-btn:hover:not(:disabled),body.glass-on .task-edit-del-btn:focus-visible{color:#fff;filter:none;background:rgba(255,59,48,.62)}
 body.glass-on .glass-host{background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none}
 body.glass-on .glass-bg{position:absolute;inset:0;border-radius:inherit;pointer-events:none}
 body.glass-on .glass-host > :not(.glass-bg):not(.tab-glider){position:relative}
