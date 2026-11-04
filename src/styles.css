@@ -578,3 +578,22 @@ body.dark.glass-on [data-glass=tint]{color:#fff}
 .set-row .input{flex:1;min-width:0}
 #aiKeyInput{padding:6px 10px}
 #aiCustomTone{margin-bottom:10px}
+
+/* ---------- 18. 每日计划与打卡审核 ---------- */
+.plan-empty{font-size:13px}
+.plan-card .head-tools{display:flex;align-items:center;gap:10px}
+.review-alert{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;margin-bottom:8px;border-radius:var(--r-sm);background:var(--tint);font-size:13px;font-weight:650}
+.chat-log{min-height:220px;gap:8px}
+.chat-msg{max-width:82%;padding:8px 12px;border-radius:var(--r-lg);background:var(--fill);font-size:13.5px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;align-self:flex-start}
+.chat-msg.user{align-self:flex-end;background:var(--tint)}
+.chat-draft{margin:0 22px 10px;padding:12px 14px;border-radius:var(--r-lg);background:var(--fill)}
+.chat-draft .pill-btn{margin-top:8px}
+.chat-foot{align-items:flex-end}
+.chat-foot .input{flex:1;min-width:0}
+.review-status{font-size:15px;font-weight:800}
+.review-status.busy,.review-status.wait{color:var(--ink-2)}
+.review-status.ok{color:var(--success)}
+.review-status.fail{color:var(--danger)}
+#reviewEvidence{margin-bottom:0}
+.folder-path{font-size:12.5px;font-weight:500;color:var(--ink-2);overflow-wrap:anywhere;min-width:0}
+.set-row .switch,.set-row .pill-btn{flex:none}

@@ -21,6 +21,13 @@ contextBridge.exposeInMainWorld('dashboardAPI', {
   aiChat: (o) => ipcRenderer.invoke('ai:chat', o),
   aiModels: () => ipcRenderer.invoke('ai:models'),
 
+  // 打卡证据（只读）和本机设置：监控文件夹只能经系统选择框添加
+  collectEvidence: (date) => ipcRenderer.invoke('evidence:collect', date),
+  localGet: () => ipcRenderer.invoke('local:get'),
+  localSet: (patch) => ipcRenderer.invoke('local:set', patch),
+  localAddFolder: () => ipcRenderer.invoke('local:addFolder'),
+  localRemoveFolder: (folder) => ipcRenderer.invoke('local:removeFolder', folder),
+
   // 系统通知
   showNotification: (title, body) => ipcRenderer.invoke('notification:show', title, body),
 

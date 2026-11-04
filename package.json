@@ -1,6 +1,6 @@
 {
   "name": "learning-dashboard",
-  "version": "1.5.2",
+  "version": "1.6.0",
   "description": "PEAN的开发小天地",
   "main": "main.js",
   "scripts": {
@@ -25,6 +25,7 @@
       "main.js",
       "preload.js",
       "ai.js",
+      "evidence.js",
       "src/**/*",
       "build/icon.ico"
     ],

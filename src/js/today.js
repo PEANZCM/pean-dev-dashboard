@@ -17,9 +17,18 @@ function afterCheckinChange(res) {
   showToast(res.msg);
   renderCheckin(); renderFlames(); renderStreakDots(); renderCalendar(); renderHeatmap();
 }
-function doCheckin() { afterCheckinChange(Rules.checkin(S)); }
-function doMakeup() { afterCheckinChange(Rules.makeup(S)); }
-function cancelCheckin() { afterCheckinChange(Rules.cancel(S)); }
+function doCheckin() {
+  if (isCheckedIn(Dates.today())) { showToast('今天已经打卡了'); return; }
+  guardCheckin(Dates.today());
+}
+function doMakeup() {
+  if (isCheckedIn(Dates.yesterday())) { showToast('昨天已经打卡了'); return; }
+  guardCheckin(Dates.yesterday());
+}
+function cancelCheckin() {
+  dropPendingReview(Dates.today());
+  afterCheckinChange(Rules.cancel(S));
+}
 
 function greeting() {
   var h = new Date().getHours();

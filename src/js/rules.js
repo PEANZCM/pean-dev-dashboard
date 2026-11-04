@@ -140,6 +140,18 @@
     return { ok: true, msg: '已取消今日打卡' };
   }
 
+  /* 离线打卡补审没过：撤销那一天。退还这天的火焰，连续天数按剩下的日子重算 */
+  function revoke(state, date, now, rand) {
+    var i = state.checkin.dates.indexOf(date);
+    if (i === -1) return false;
+    state.checkin.dates.splice(i, 1);
+    state.flame.total = Math.max(0, state.flame.total - 1);
+    refresh(state, now, rand);
+    var live = state.medals.liveMedal;
+    if (live) live.startDate = state.streak.startDate;
+    return true;
+  }
+
   /* 断签：今天、昨天、前天都没打卡（前天打过还能靠补打昨天救回来）
      → 冻结奖章、扣 2 个火焰、连续天数清零 */
   function detectBreak(state, now) {
@@ -158,6 +170,6 @@
     computeStreak: computeStreak, flameBreakdown: flameBreakdown,
     superFlames: superFlames, superFlameLabel: superFlameLabel,
     updateMedal: updateMedal, freezeMedal: freezeMedal,
-    checkin: checkin, makeup: makeup, cancel: cancel, detectBreak: detectBreak
+    checkin: checkin, makeup: makeup, cancel: cancel, revoke: revoke, detectBreak: detectBreak
   };
 });

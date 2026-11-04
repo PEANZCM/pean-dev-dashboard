@@ -222,7 +222,7 @@ function aiSet(k, v) {
 async function refreshAIStatus() {
   var st = await dashboardAPI.aiStatus();
   AI.ready = st.hasKey; AI.canEncrypt = st.canEncrypt;
-  renderAISettings(); renderReview(); renderQuoteCard();
+  renderAISettings(); renderReview(); renderQuoteCard(); renderPlanCard();
   if (AI.ready) loadModels();
 }
 
@@ -256,7 +256,6 @@ function bindAI() {
 }
 
 async function startAI() {
-  await refreshAIStatus();
   if (!AI.ready) return;
   if (!currentOpener()) generateOpener(false);
   if (!S.ai.review || S.ai.review.week !== Coach.weekKey()) generateReview(false);

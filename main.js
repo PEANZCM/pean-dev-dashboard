@@ -1,19 +1,23 @@
-const { app, BrowserWindow, ipcMain, dialog, Notification, nativeImage, shell, safeStorage } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, Notification, nativeImage, shell, safeStorage, Tray, Menu } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const ai = require('./ai.js');
+const evidence = require('./evidence.js');
 
 // 测试用：PEAN_USERDATA=某个目录 时用独立数据目录启动，不碰真实数据
 if (process.env.PEAN_USERDATA) app.setPath('userData', path.resolve(process.env.PEAN_USERDATA));
 
-let mainWindow;
+// 只开一个：开机自启后再点图标是回到已有窗口；--quit 让正在运行的软件退出（安装脚本用）
+if (!app.requestSingleInstanceLock() || process.argv.includes('--quit')) app.exit(0);
+
+let mainWindow, tray = null, quitting = false;
 const DATA_DIR = path.join(app.getPath('userData'), 'data');
 const SHOT_DIR = path.join(DATA_DIR, 'screenshots');
 
 // 渲染进程只能读写这些数据文件（防止 ../ 之类的路径穿越）；备份也用这份清单
 const DATA_FILES = [
   'checkin.json', 'streak.json', 'flame.json', 'medals.json', 'tasks.json', 'plan.json', 'progress.json',
-  'meta.json', 'diary.json', 'mood.json', 'quotes.json', 'settings.json', 'screenshots.json', 'ai.json'
+  'meta.json', 'diary.json', 'mood.json', 'quotes.json', 'settings.json', 'screenshots.json', 'ai.json', 'daily.json'
 ];
 
 function dataPath(name) {
@@ -48,20 +52,38 @@ function createWindow() {
   mainWindow.webContents.on('will-navigate', (e, url) => { if (!url.startsWith('file:')) e.preventDefault(); });
   mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   mainWindow.loadFile(path.join(__dirname, 'src', 'index.html'));
-  mainWindow.once('ready-to-show', () => mainWindow.show());
+  mainWindow.once('ready-to-show', () => { if (!process.argv.includes('--hidden')) mainWindow.show(); });
+  // 常驻后台时关窗口只是收起，时长统计和晚间提醒继续工作
+  mainWindow.on('close', (e) => {
+    if (tray && !quitting) { e.preventDefault(); mainWindow.hide(); }
+  });
   mainWindow.on('closed', () => { mainWindow = null; });
+}
+
+function showWindow() {
+  if (!mainWindow) return createWindow();
+  mainWindow.show();
+  if (mainWindow.isMinimized()) mainWindow.restore();
+  mainWindow.focus();
 }
 
 // Windows 打包后不设置 AppUserModelId，系统通知可能不显示
 app.setAppUserModelId('com.trae.pean-dashboard');
 
+app.on('second-instance', (e, argv) => {
+  if (argv.includes('--quit')) { quitting = true; app.quit(); } else showWindow();
+});
+
 app.whenReady().then(() => {
   fs.mkdirSync(SHOT_DIR, { recursive: true });
+  applyLocal();
   createWindow();
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
 });
+
+app.on('before-quit', () => { quitting = true; stopTracking(); });
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
@@ -158,7 +180,9 @@ ipcMain.handle('wallpaper:read', () => {
 ipcMain.handle('notification:show', (e, title, body) => {
   try {
     if (!Notification.isSupported()) return false;
-    new Notification({ title, body, silent: false }).show();
+    const n = new Notification({ title, body, silent: false });
+    n.on('click', showWindow);
+    n.show();
     return true;
   } catch (err) { return false; }
 });
@@ -233,6 +257,84 @@ ipcMain.handle('ai:chat', (e, o) => {
 ipcMain.handle('ai:models', () => {
   const key = readKey();
   return key ? ai.listModels(key, { base: AI_BASE }) : { ok: false, noKey: true };
+});
+
+// ===== 本机设置：监控文件夹、时长统计、常驻后台、开机自启 =====
+// 放在数据目录之外：只属于这台电脑，不进备份；文件夹只能通过系统选择框添加，渲染进程不能写入任意路径
+const LOCAL_FILE = path.join(app.getPath('userData'), 'local.json');
+const USAGE_FILE = path.join(app.getPath('userData'), 'usage.json');
+
+function readJson(fp, def) {
+  try { return Object.assign(def, JSON.parse(fs.readFileSync(fp, 'utf-8'))); } catch (err) { return def; }
+}
+function writeJson(fp, obj) {
+  const tmp = fp + '.tmp';
+  fs.writeFileSync(tmp, JSON.stringify(obj), 'utf-8');
+  fs.renameSync(tmp, fp);
+}
+
+let local = readJson(LOCAL_FILE, { folders: [], track: false, background: false, autostart: false });
+let usage = readJson(USAGE_FILE, { days: {} });
+let stopTracker = null, usageFlush = null;
+
+function localDate() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function flushUsage() { try { writeJson(USAGE_FILE, usage); } catch (err) {} }
+function stopTracking() {
+  if (!stopTracker) return;
+  stopTracker(); stopTracker = null;
+  clearInterval(usageFlush);
+  flushUsage();
+}
+
+function applyLocal() {
+  if (local.track && !stopTracker) {
+    stopTracker = evidence.startTracker((proc, sec) => evidence.addSample(usage, localDate(), proc, sec), +process.env.PEAN_TRACK_SECONDS || undefined);
+    usageFlush = setInterval(flushUsage, 60000);
+  } else if (!local.track) stopTracking();
+
+  if ((local.background || local.autostart) && !tray) {
+    tray = new Tray(path.join(__dirname, 'build', 'icon.ico'));
+    tray.setToolTip('PEAN的开发小天地');
+    tray.setContextMenu(Menu.buildFromTemplate([
+      { label: '打开', click: showWindow },
+      { label: '退出', click: () => { quitting = true; app.quit(); } }
+    ]));
+    tray.on('click', showWindow);
+  } else if (!local.background && !local.autostart && tray) {
+    tray.destroy(); tray = null;
+  }
+  // 只有安装版才写开机启动项，开发时跑的是 electron.exe
+  if (app.isPackaged) app.setLoginItemSettings({ openAtLogin: !!local.autostart, args: ['--hidden'] });
+}
+
+function localView() { return Object.assign({}, local, { canAutostart: app.isPackaged }); }
+
+ipcMain.handle('local:get', () => localView());
+ipcMain.handle('local:set', (e, patch) => {
+  ['track', 'background', 'autostart'].forEach((k) => { if (typeof patch[k] === 'boolean') local[k] = patch[k]; });
+  writeJson(LOCAL_FILE, local);
+  applyLocal();
+  return localView();
+});
+ipcMain.handle('local:addFolder', async () => {
+  const result = await dialog.showOpenDialog(mainWindow, { title: '选择要监控的文件夹', properties: ['openDirectory'] });
+  if (!result.canceled && result.filePaths.length && !local.folders.includes(result.filePaths[0])) {
+    local.folders.push(result.filePaths[0]);
+    writeJson(LOCAL_FILE, local);
+  }
+  return localView();
+});
+ipcMain.handle('local:removeFolder', (e, folder) => {
+  local.folders = local.folders.filter((f) => f !== folder);
+  writeJson(LOCAL_FILE, local);
+  return localView();
+});
+ipcMain.handle('evidence:collect', (e, date) => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(date))) return null;
+  return evidence.collect(local.folders, date, usage, local.track).catch(() => null);
 });
 
 // ===== IPC: 打开外部链接 =====

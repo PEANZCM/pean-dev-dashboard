@@ -59,6 +59,9 @@
     });
     lines.push('【最近 7 天完成的任务】' + (recent.length ? recent.join('；') : '没有记录'));
 
+    var plan = S.daily && S.daily.plans[today];
+    if (plan) lines.push('【今天和教练定的计划】' + plan.items.map(function (x) { return (x.done ? '✓' : '○') + clip(x.text, 40); }).join('；'));
+
     if (opts.mood || opts.diary) {
       for (var k = 6; k >= 0; k--) {
         var ds = Dates.offset(-k, now), bits = [];
