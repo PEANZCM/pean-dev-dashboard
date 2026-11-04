@@ -102,6 +102,9 @@ async function collect(folders, date, usage, tracking) {
 }
 
 /* ---------- 开发软件时长 ---------- */
+function isDev(proc) { return !!DEV_APPS[String(proc).toLowerCase()]; }
+function isSelf(proc) { return /^(PEAN的开发小天地|electron)$/i.test(proc); }
+
 // 只记开发软件；30 天以前的自动删掉
 function addSample(usage, date, proc, sec) {
   const label = DEV_APPS[String(proc).toLowerCase()];
@@ -130,7 +133,7 @@ function trackerScript(pid, interval) {
 
 const INTERVAL = 15, IDLE_LIMIT = 300;
 
-// onSample(进程名, 秒数)：离开电脑超过 5 分钟不算；睡眠醒来的那段时间也不算
+// onSample(进程名, 秒数, 是否离开电脑)：离开超过 5 分钟算离开；睡眠醒来的那段时间不算
 function startTracker(onSample, interval) {
   const step = interval || INTERVAL;
   const child = spawn('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', trackerScript(process.pid, step)], { windowsHide: true, stdio: ['ignore', 'pipe', 'ignore'] });
@@ -143,11 +146,11 @@ function startTracker(onSample, interval) {
     lines.forEach((line) => {
       const [proc, idle] = line.split('\t'), now = Date.now(), gap = (now - last) / 1000;
       last = now;
-      if (proc && +idle < IDLE_LIMIT) onSample(proc, Math.min(gap, step * 2));
+      if (proc) onSample(proc, Math.min(gap, step * 2), +idle >= IDLE_LIMIT);
     });
   });
   child.on('error', () => {});
   return () => { try { child.kill(); } catch (e) {} };
 }
 
-module.exports = { DEV_APPS, SKIP, scanFolder, parseGitLog, gitDay, findRepos, collect, addSample, startTracker };
+module.exports = { DEV_APPS, SKIP, isDev, isSelf, scanFolder, parseGitLog, gitDay, findRepos, collect, addSample, startTracker };

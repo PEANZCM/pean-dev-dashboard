@@ -23,6 +23,7 @@ contextBridge.exposeInMainWorld('dashboardAPI', {
 
   // 打卡证据（只读）和本机设置：监控文件夹只能经系统选择框添加
   collectEvidence: (date) => ipcRenderer.invoke('evidence:collect', date),
+  onUsageSample: (fn) => ipcRenderer.on('usage:sample', (e, sample) => fn(sample)),
   localGet: () => ipcRenderer.invoke('local:get'),
   localSet: (patch) => ipcRenderer.invoke('local:set', patch),
   localAddFolder: () => ipcRenderer.invoke('local:addFolder'),

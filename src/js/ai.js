@@ -8,46 +8,31 @@ var AI = { ready: false, canEncrypt: true, busyOpener: false, busyReview: false 
 
 function aiOpts() { return { diary: !!S.settings.aiDiary, mood: !!S.settings.aiMood }; }
 function aiPersona() { return Coach.persona(S.settings.aiTone, S.settings.aiCustomTone); }
-function aiAsk(o) { o.model = S.settings.aiModel; return dashboardAPI.aiChat(o); }
+function aiAsk(o) { o.model = S.settings.aiModel; return orbTrack(dashboardAPI.aiChat(o)); }
 function aiContext() { return Coach.context(S, aiOpts()); }
 
 function parseJson(text) {
   try { return JSON.parse(text); } catch (e) { throw new Error('AI 返回的格式不对，再试一次'); }
 }
 
-// ===== 开场白：每天一条，缓存在 ai.json =====
+// ===== 开场白：每天第一次打开时在对话里说一次 =====
 function currentOpener() {
   var o = S.ai.opener;
-  return AI.ready && o && o.date === Dates.today() ? o : null;
+  return o && o.date === Dates.today() ? o : null;
 }
 
-function renderQuoteCard() {
-  var o = currentOpener();
-  $('quoteCardTitle').textContent = o ? '教练开场白' : '今日一句';
-  if (o) {
-    $('quoteText').textContent = o.text;
-    $('quoteAuthor').textContent = '— AI 教练';
-  } else {
-    displayQuote();
-  }
-}
-
-async function generateOpener(manual) {
+async function generateOpener() {
   if (!AI.ready || AI.busyOpener) return;
   AI.busyOpener = true;
-  if (manual) $('quoteAuthor').textContent = '正在想…';
   var r = await aiAsk({
     system: aiPersona() + '\n写一段打开软件时看到的开场白：两三句话、80 字以内，结合数据说具体的事，并点出今天最该做的一件事。不要标题，不要 Markdown。',
     messages: [{ role: 'user', content: aiContext() }], maxTokens: 300
   });
   AI.busyOpener = false;
-  if (r.ok) {
-    S.ai.opener = { date: Dates.today(), text: r.text };
-    Store.save('ai.json', S.ai);
-  } else if (manual) {
-    showToast(r.error);
-  }
-  renderQuoteCard();
+  if (!r.ok) return;
+  S.ai.opener = { date: Dates.today(), text: r.text };
+  Store.save('ai.json', S.ai);
+  pushChat('assistant', r.text);
 }
 
 // ===== 周复盘：每周一条，第一次打开软件时自动生成 =====
@@ -222,7 +207,7 @@ function aiSet(k, v) {
 async function refreshAIStatus() {
   var st = await dashboardAPI.aiStatus();
   AI.ready = st.hasKey; AI.canEncrypt = st.canEncrypt;
-  renderAISettings(); renderReview(); renderQuoteCard(); renderPlanCard();
+  renderAISettings(); renderReview(); renderPlanCard(); renderChat(); renderOrbStatus(); renderCheckin();
   if (AI.ready) loadModels();
 }
 
@@ -233,7 +218,7 @@ function bindAI() {
     if (!r.ok) { showToast(r.error); return; }
     await refreshAIStatus();
     showToast('Key 已加密保存');
-    generateOpener(false);
+    if (!currentOpener()) generateOpener();
   });
   on('aiKeyClear', async function () {
     if (!window.confirm('删除已保存的 API Key？')) return;
@@ -257,6 +242,6 @@ function bindAI() {
 
 async function startAI() {
   if (!AI.ready) return;
-  if (!currentOpener()) generateOpener(false);
+  if (!currentOpener()) generateOpener();
   if (!S.ai.review || S.ai.review.week !== Coach.weekKey()) generateReview(false);
 }

@@ -167,7 +167,7 @@ h1,h2,h3,p{margin:0}
 
 .today-grid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:20px;align-items:start}
 .col-main,.col-side{display:flex;flex-direction:column;gap:20px;min-width:0}
-.col-side{position:sticky;top:90px}
+
 
 /* ---------- 6. 今日 · 打卡 ---------- */
 .hero{padding:26px 28px}
@@ -578,6 +578,31 @@ body.dark.glass-on [data-glass=tint]{color:#fff}
 .set-row .input{flex:1;min-width:0}
 #aiKeyInput{padding:6px 10px}
 #aiCustomTone{margin-bottom:10px}
+
+/* ---------- 19. 伴学首页 ---------- */
+.companion{position:sticky;top:90px;display:flex;flex-direction:column;gap:14px;height:calc(100vh - 122px);min-height:520px;padding:22px 26px}
+.comp-head .hero-sub{margin-top:2px;font-size:12.5px}
+.comp-stage{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 12px;margin-top:4px}
+.comp-stage b{font-size:20px;font-weight:850;letter-spacing:-.01em}
+.comp-stage span{font-size:12.5px;font-weight:650;color:var(--accent)}
+.comp-orb{display:flex;align-items:center;gap:16px;padding:12px 18px 12px 14px;border-radius:var(--r-lg);background:var(--fill)}
+.orb-box{flex:none;width:64px;height:64px}
+.comp-state{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;font-size:15px;font-weight:800}
+.comp-state small{font-size:12.5px;font-weight:550;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.comp-timer{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:1px}
+.comp-timer b{font-size:26px;font-weight:800;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.comp-timer small{font-size:11.5px;font-weight:600;color:var(--muted)}
+.companion .comp-log{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:2px}
+.chat-empty{margin:auto;font-size:13.5px}
+.chat-day{align-self:center;padding:6px 0 2px;font-size:11.5px;font-weight:650;color:var(--muted)}
+.chat-msg.nudge{background:color-mix(in srgb,var(--danger) 16%,transparent)}
+.comp-input{display:flex;align-items:flex-end;gap:10px}
+.comp-input .input{flex:1;min-width:0;max-height:96px;resize:none}
+.board-grid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:20px;align-items:start;margin:20px 0}
+.board-side{position:sticky;top:90px;display:flex;flex-direction:column;gap:20px;min-width:0}
+.streak-card .checkin-row{margin:16px 0 0}
+.streak-card .checkin-btn{flex:1 0 100%;min-width:0;height:48px}
+.streak-card .pill-btn{flex:1;justify-content:center}
 
 /* ---------- 18. 每日计划与打卡审核 ---------- */
 .plan-empty{font-size:13px}

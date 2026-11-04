@@ -24,7 +24,7 @@
   </div>
   <nav class="tabs" id="viewTabs" role="tablist" aria-label="视图切换">
     <span class="tab-glider" id="tabGlider"></span>
-    <button class="tab active" data-view="today" role="tab" aria-selected="true">今日</button>
+    <button class="tab active" data-view="today" role="tab" aria-selected="true">伴学</button>
     <button class="tab" data-view="progress" role="tab" aria-selected="false">进度</button>
   </nav>
   <div class="top-actions">
@@ -36,27 +36,33 @@
 <main class="layout">
 
   <!-- ============================================================
-       今日：左边做事（打卡 + 任务），右边激励（进度 · 连续 · 一句话）
+       伴学：左边是 AI（状态球 · 计时 · 对话），右边是计划 · 证据 · 打卡
        ============================================================ -->
   <section class="view active" id="viewToday" data-view="today">
     <div class="today-grid">
 
       <div class="col-main">
-        <section class="card hero">
-          <div class="hero-date"><span id="todayDate">—</span><span class="dot-sep">·</span><span id="greeting">你好</span></div>
-          <h1 class="hero-stage" id="heroStage">—</h1>
-          <p class="hero-sub" id="heroStageSub"></p>
-          <p class="hero-remain" id="heroRemain"></p>
-          <div class="checkin-row">
-            <button class="checkin-btn" id="checkinBtn">
-              <span class="checkin-emoji"><svg class="ic"><use href="#i-book"/></svg></span>
-              <span class="checkin-label">今日打卡</span>
-            </button>
-            <button class="pill-btn subtle" id="makeupBtn" title="补打昨天的卡"><svg class="ic"><use href="#i-arrow-up"/></svg>补打昨天</button>
-            <button class="pill-btn subtle" id="cancelCheckinBtn" title="撤销今天的打卡"><svg class="ic"><use href="#i-close"/></svg>撤销</button>
+        <section class="card companion">
+          <div class="comp-head">
+            <div class="hero-date"><span id="todayDate">—</span><span class="dot-sep">·</span><span id="greeting">你好</span></div>
+            <div class="comp-stage"><b id="heroStage">—</b><span id="heroRemain"></span></div>
+            <p class="hero-sub" id="heroStageSub"></p>
+          </div>
+          <div class="comp-orb">
+            <div class="orb-box"><canvas id="orbCanvas"></canvas></div>
+            <div class="comp-state"><span id="orbStatus">待命</span><small id="studyTask"></small></div>
+            <div class="comp-timer"><b id="studyClock">00:00:00</b><small id="studyTotal"></small></div>
+            <button class="pill-btn primary" id="studyBtn">开始学习</button>
+          </div>
+          <div class="chat-log comp-log" id="chatLog"></div>
+          <div class="comp-input">
+            <textarea class="input" id="chatInput" rows="1" placeholder="和教练说点什么，回车发送"></textarea>
+            <button class="pill-btn primary" id="chatSend">发送</button>
           </div>
         </section>
+      </div>
 
+      <aside class="col-side">
         <section class="card plan-card">
           <div class="card-head">
             <h2>今日计划</h2>
@@ -66,39 +72,23 @@
           <div id="planItems"></div>
         </section>
 
-        <section class="card tasks-card">
-          <div class="card-head">
-            <h2>学习任务</h2>
-            <button class="pill-btn tint" id="editTasksBtn"><svg class="ic"><use href="#i-edit"/></svg>编辑规划</button>
-          </div>
-          <div id="board"></div>
-        </section>
-      </div>
-
-      <aside class="col-side">
-        <section class="card progress-card">
-          <div class="ring">
-            <svg viewBox="0 0 120 120">
-              <defs>
-                <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0" stop-color="#0A6CFF"/><stop offset=".5" stop-color="#5B5BF0"/><stop offset="1" stop-color="#A855F7"/>
-                </linearGradient>
-              </defs>
-              <circle class="ring-bg" cx="60" cy="60" r="50" fill="none" stroke-width="10"/>
-              <circle class="ring-fg" id="ringFg" cx="60" cy="60" r="50" fill="none" stroke-width="10" stroke-linecap="round" stroke-dasharray="314.16" stroke-dashoffset="314.16" transform="rotate(-90 60 60)"/>
-            </svg>
-            <div class="ring-center"><b id="pctNum">0%</b><small>总进度</small></div>
-          </div>
-          <div class="progress-meta">
-            <div class="meta-num"><b id="doneCount">0</b><span>/</span><b id="totalCount">0</b></div>
-            <div class="meta-label">已完成任务</div>
-          </div>
+        <section class="card evidence-card">
+          <div class="card-head small"><h3>今天的证据</h3><button class="icon-btn sm" id="evidenceRefresh" title="刷新" aria-label="刷新"><svg class="ic"><use href="#i-refresh"/></svg></button></div>
+          <div id="todayEvidence"></div>
         </section>
 
         <section class="card streak-card">
           <div class="streak-head">
             <span class="streak-icon"><svg class="ic"><use href="#i-flame"/></svg></span>
             <div><div class="streak-num">连续 <b id="streakCount">0</b> 天</div><div class="streak-hint" id="medalHint"></div></div>
+          </div>
+          <div class="checkin-row">
+            <button class="checkin-btn" id="checkinBtn">
+              <span class="checkin-emoji"><svg class="ic"><use href="#i-book"/></svg></span>
+              <span class="checkin-label">今日打卡</span>
+            </button>
+            <button class="pill-btn subtle" id="makeupBtn" title="补打昨天的卡"><svg class="ic"><use href="#i-arrow-up"/></svg>补打昨天</button>
+            <button class="pill-btn subtle" id="cancelCheckinBtn" title="撤销今天的打卡"><svg class="ic"><use href="#i-close"/></svg>撤销</button>
           </div>
           <div class="streak-dots" id="streakDots"></div>
           <div class="flame-box">
@@ -107,32 +97,62 @@
           </div>
         </section>
 
-        <section class="card quote-card">
-          <div class="card-head small">
-            <h3 id="quoteCardTitle">今日一句</h3>
-            <div class="head-tools">
-              <button class="icon-btn sm" id="quoteRefresh" title="换一条" aria-label="换一条"><svg class="ic"><use href="#i-refresh"/></svg></button>
-              <button class="icon-btn sm" id="quoteAdd" title="收藏一句" aria-label="收藏一句"><svg class="ic"><use href="#i-plus"/></svg></button>
-            </div>
-          </div>
-          <p class="quote-text" id="quoteText">加载中...</p>
-          <p class="quote-author" id="quoteAuthor"></p>
-          <button class="link-btn" id="customQuotesToggle" style="display:none"></button>
-          <div class="custom-quotes" id="customQuotes" style="display:none"><div id="customQuotesList"></div></div>
-          <p class="tip"><svg class="ic"><use href="#i-bulb"/></svg><span>Web 学的 Flexbox 布局思维，和鸿蒙 ArkUI 的 Column/Row 几乎一样。这不是白学，是地基。</span></p>
-        </section>
       </aside>
     </div>
   </section>
 
   <!-- ============================================================
-       进度：路线图 → 日历 + 当天详情 → 热力图
+       进度：路线图 → 任务 + 总进度 → 日历 + 当天详情 → 热力图
        ============================================================ -->
   <section class="view" id="viewProgress" data-view="progress">
     <section class="card roadmap">
       <div class="card-head"><h2>人生路线</h2><span class="muted" id="roadmapHint"></span></div>
       <div class="rm-flow" id="roadmapFlow"></div>
     </section>
+
+    <div class="board-grid">
+    <section class="card tasks-card">
+      <div class="card-head">
+        <h2>学习任务</h2>
+        <button class="pill-btn tint" id="editTasksBtn"><svg class="ic"><use href="#i-edit"/></svg>编辑规划</button>
+      </div>
+      <div id="board"></div>
+    </section>
+      <aside class="board-side">
+      <section class="card progress-card">
+        <div class="ring">
+          <svg viewBox="0 0 120 120">
+            <defs>
+              <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#0A6CFF"/><stop offset=".5" stop-color="#5B5BF0"/><stop offset="1" stop-color="#A855F7"/>
+              </linearGradient>
+            </defs>
+            <circle class="ring-bg" cx="60" cy="60" r="50" fill="none" stroke-width="10"/>
+            <circle class="ring-fg" id="ringFg" cx="60" cy="60" r="50" fill="none" stroke-width="10" stroke-linecap="round" stroke-dasharray="314.16" stroke-dashoffset="314.16" transform="rotate(-90 60 60)"/>
+          </svg>
+          <div class="ring-center"><b id="pctNum">0%</b><small>总进度</small></div>
+        </div>
+        <div class="progress-meta">
+          <div class="meta-num"><b id="doneCount">0</b><span>/</span><b id="totalCount">0</b></div>
+          <div class="meta-label">已完成任务</div>
+        </div>
+      </section>
+      <section class="card quote-card">
+        <div class="card-head small">
+          <h3>今日一句</h3>
+          <div class="head-tools">
+            <button class="icon-btn sm" id="quoteRefresh" title="换一条" aria-label="换一条"><svg class="ic"><use href="#i-refresh"/></svg></button>
+            <button class="icon-btn sm" id="quoteAdd" title="收藏一句" aria-label="收藏一句"><svg class="ic"><use href="#i-plus"/></svg></button>
+          </div>
+        </div>
+        <p class="quote-text" id="quoteText">加载中...</p>
+        <p class="quote-author" id="quoteAuthor"></p>
+        <button class="link-btn" id="customQuotesToggle" style="display:none"></button>
+        <div class="custom-quotes" id="customQuotes" style="display:none"><div id="customQuotesList"></div></div>
+        <p class="tip"><svg class="ic"><use href="#i-bulb"/></svg><span>Web 学的 Flexbox 布局思维，和鸿蒙 ArkUI 的 Column/Row 几乎一样。这不是白学，是地基。</span></p>
+      </section>
+      </aside>
+    </div>
 
     <div class="progress-grid">
       <section class="card calendar-card">
@@ -371,6 +391,7 @@
 <script src="js/review.js"></script>
 <script src="js/util.js"></script>
 <script src="js/spring.js"></script>
+<script src="js/orb.js"></script>
 <script src="js/glass.js"></script>
 <script src="js/motion.js"></script>
 <script src="js/wallpaper.js"></script>
@@ -382,6 +403,7 @@
 <script src="js/editor.js"></script>
 <script src="js/ai.js"></script>
 <script src="js/daily.js"></script>
+<script src="js/companion.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

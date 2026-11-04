@@ -15,9 +15,10 @@ var DEFAULTS = {
   'settings.json': { darkMode: false, reminderHour: 20, lastReminded: null, wallpaper: 'auto', wallAnimated: true, glass: 'balanced', motion: 'full' },
   'screenshots.json': { shots: {} },
   'ai.json': { opener: null, review: null },
-  'daily.json': { plans: {}, reviews: {}, chats: {} }
+  'daily.json': { plans: {}, reviews: {}, chats: {}, study: { running: null, sessions: {} } },
+  'chat.json': { messages: [] }
 };
-var KEYS = { checkin: 'checkin.json', streak: 'streak.json', flame: 'flame.json', medals: 'medals.json', diary: 'diary.json', mood: 'mood.json', quotes: 'quotes.json', settings: 'settings.json', shots: 'screenshots.json', ai: 'ai.json', daily: 'daily.json' };
+var KEYS = { chat: 'chat.json', checkin: 'checkin.json', streak: 'streak.json', flame: 'flame.json', medals: 'medals.json', diary: 'diary.json', mood: 'mood.json', quotes: 'quotes.json', settings: 'settings.json', shots: 'screenshots.json', ai: 'ai.json', daily: 'daily.json' };
 
 async function loadAll() {
   for (var k in KEYS) S[k] = await Store.load(KEYS[k], JSON.parse(JSON.stringify(DEFAULTS[KEYS[k]])));
@@ -25,6 +26,7 @@ async function loadAll() {
     S.medals.labelMemory = S.medals.labelMemory || {};
     S.medals.labelMemory[t] = S.medals.labelMemory[t] || [];
   });
+  S.daily.study = S.daily.study || { running: null, sessions: {} };
   var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   [['reminderHour', 20], ['wallpaper', 'auto'], ['wallAnimated', true], ['glass', 'balanced'], ['motion', reduce ? 'reduced' : 'full'], ['aiTone', 'warm'], ['aiModel', 'auto'], ['aiDiary', false], ['aiMood', false], ['aiGate', false]].forEach(function (kv) {
     if (S.settings[kv[0]] == null) S.settings[kv[0]] = kv[1];
@@ -120,6 +122,7 @@ function applyTheme() {
   $('glassSelect').value = s.glass;
   $('motionSelect').value = s.motion;
   Glass.setDark(s.darkMode);
+  setOrbTheme(!!s.darkMode);
   Glass.setQuality(s.glass);
   Motion.setLevel(s.motion);
   applyWallpaper();
@@ -143,8 +146,9 @@ async function resetProgress() {
   S.mood = { moods: {} };
   S.ai = { opener: null, review: null };   // AI 的开场白和复盘是根据旧进度写的，一起清掉
   Store.save('ai.json', S.ai);
-  S.daily = { plans: {}, reviews: {}, chats: {} };
+  S.daily = JSON.parse(JSON.stringify(DEFAULTS['daily.json']));
   await Store.save('daily.json', S.daily);
+  await Store.save('chat.json', { messages: [] });
   saveRules();
   await Store.save('progress.json', S.progress);
   await Store.save('diary.json', S.diary);
@@ -235,7 +239,9 @@ async function init() {
   bindEvents();
   bindAI();
   bindDaily();
+  bindCompanion();
   await refreshAIStatus();
+  startCompanion();      // 要在 tick 之前：tick 会刷新陪学心跳，先判断上次是不是断了
   tick();
   startDaily();
   startAI();

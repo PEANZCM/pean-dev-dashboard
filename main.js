@@ -17,7 +17,7 @@ const SHOT_DIR = path.join(DATA_DIR, 'screenshots');
 // 渲染进程只能读写这些数据文件（防止 ../ 之类的路径穿越）；备份也用这份清单
 const DATA_FILES = [
   'checkin.json', 'streak.json', 'flame.json', 'medals.json', 'tasks.json', 'plan.json', 'progress.json',
-  'meta.json', 'diary.json', 'mood.json', 'quotes.json', 'settings.json', 'screenshots.json', 'ai.json', 'daily.json'
+  'meta.json', 'diary.json', 'mood.json', 'quotes.json', 'settings.json', 'screenshots.json', 'ai.json', 'daily.json', 'chat.json'
 ];
 
 function dataPath(name) {
@@ -291,7 +291,11 @@ function stopTracking() {
 
 function applyLocal() {
   if (local.track && !stopTracker) {
-    stopTracker = evidence.startTracker((proc, sec) => evidence.addSample(usage, localDate(), proc, sec), +process.env.PEAN_TRACK_SECONDS || undefined);
+    stopTracker = evidence.startTracker((proc, sec, idle) => {
+      if (!idle) evidence.addSample(usage, localDate(), proc, sec);
+      // 渲染进程只拿到分类，拿不到软件名：陪学提醒用
+      if (mainWindow) mainWindow.webContents.send('usage:sample', { dev: evidence.isDev(proc), self: evidence.isSelf(proc), idle, sec });
+    }, +process.env.PEAN_TRACK_SECONDS || undefined);
     usageFlush = setInterval(flushUsage, 60000);
   } else if (!local.track) stopTracking();
 

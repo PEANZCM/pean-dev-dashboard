@@ -68,7 +68,7 @@ function showDailyQuote() {
     S.quotes.currentQuote = pickRandomQuote();
     Store.save('quotes.json', S.quotes);
   }
-  renderQuoteCard();
+  displayQuote();
 }
 
 function displayQuote() {
@@ -78,7 +78,6 @@ function displayQuote() {
 }
 
 function refreshQuote() {
-  if (currentOpener()) { generateOpener(true); return; }   // 显示的是教练开场白时，刷新就是重新生成
   S.quotes.currentQuote = pickRandomQuote();
   Store.save('quotes.json', S.quotes);
   displayQuote();

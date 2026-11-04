@@ -183,6 +183,7 @@ function evidenceLines(ev) {
   var apps = Object.keys(ev.usage);
   out.push(apps.length ? '开发软件 ' + apps.map(function (a) { return a + ' ' + Review.duration(ev.usage[a]); }).join('、') : ev.tracking ? '开发软件没有使用记录' : '没有开启时长统计');
   out.push('日记 ' + ev.diary.chars + ' 字，截图 ' + ev.shots + ' 张');
+  out.push(ev.study.sec ? '陪学 ' + Review.duration(ev.study.sec) + '，共 ' + ev.study.count + ' 段' : '还没有陪学记录');
   return out;
 }
 
@@ -192,6 +193,7 @@ async function gatherEvidence(date) {
   var entry = (S.diary.entries[date] || '').trim();
   ev.diary = { chars: entry.length, text: S.settings.aiDiary ? entry.slice(0, 1500) : '' };
   ev.shots = (S.shots.shots[date] || []).length;
+  ev.study = { sec: Review.studyTotal(S.daily.study, date), count: (S.daily.study.sessions[date] || []).length };
   return ev;
 }
 
@@ -346,6 +348,7 @@ function planNudge() {
 
 function dailyTick() {
   revokeOverdue();
+  studyBeat();
   planNudge();
   if (++RV.ticks % 30 === 0) recheckPending();
 }
@@ -397,6 +400,7 @@ function bindDaily() {
     S.settings.aiGate = !S.settings.aiGate;
     Store.save('settings.json', S.settings);
     renderReviewSettings();
+    renderCheckin();
   });
   on('trackToggle', function () { setLocal({ track: !LOCAL.track }); });
   on('backgroundToggle', function () { setLocal({ background: !(LOCAL.background || LOCAL.autostart), autostart: false }); });

@@ -65,7 +65,7 @@ function renderCheckin() {
   btn.classList.toggle('done', checked);
   btn.setAttribute('data-glass', checked ? 'green' : 'blue');   // 有色液态玻璃：没打卡蓝、打完绿
   Glass.refresh(btn);
-  btn.querySelector('.checkin-label').textContent = checked ? '今日已打卡' : '今日打卡';
+  btn.querySelector('.checkin-label').textContent = checked ? '今日已打卡' : gateOn() ? '申请打卡' : '今日打卡';
   btn.querySelector('.checkin-emoji').innerHTML = iconSvg(checked ? 'check' : 'book');
   setDisabled($('makeupBtn'), isCheckedIn(Dates.yesterday()));
   setDisabled($('cancelCheckinBtn'), !checked);
