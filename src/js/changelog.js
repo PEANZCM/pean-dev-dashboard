@@ -6,6 +6,7 @@
   if (typeof module === 'object' && module.exports) module.exports = data;
   else root.CHANGELOG = data;
 })(this, [
+  { v: '1.5.2', date: '2026-11-04', title: '按钮洞跟手', items: ['折射挖的洞和按钮同一帧移动，拖动不再滞后', '模型列表直接问 DeepSeek，上新模型时自动出现'] },
   { v: '1.5.1', date: '2026-11-04', title: '设置分页与关于页', items: ['设置分成通用、AI、数据、关于软件四页', '关于软件独占一页：头像、版本、GitHub 和完整更新记录'] },
   { v: '1.5.0', date: '2026-11-04', title: 'AI 教练基础', items: ['接入 DeepSeek，API Key 由系统加密保存', '每次请求都带本机实时时间', '开场白、周复盘、AI 提醒、规划助手、任务拆解', '语气可切换，日记和心情可单独决定是否发送'] },
   { v: '1.4.3', date: '2026-11-04', title: '顶栏渐变模糊', items: ['顶栏改成 iOS 式渐变高斯模糊，没有硬边'] },

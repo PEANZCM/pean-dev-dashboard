@@ -69,6 +69,19 @@ test('草稿：不合格的直接报错，不产生结果', () => {
   assert.throws(() => Coach.applyDraft(s.plan.stages, { stages: [{ title: '' }] }, s.progress));
 });
 
+test('模型设置：自动按任务选，具体模型原样使用，乱填的值退回自动', () => {
+  assert.equal(Ai.pickModel('auto', true), 'deepseek-v4-pro');
+  assert.equal(Ai.pickModel('flash', true), 'deepseek-flash');
+  assert.equal(Ai.pickModel('deepseek-v5-pro', false), 'deepseek-v5-pro');
+  assert.equal(Ai.pickModel('a b', false), 'deepseek-flash');
+});
+
+test('模型列表来自接口，失败时不抛异常', async () => {
+  const fetch = async () => ({ ok: true, json: async () => ({ data: [{ id: 'deepseek-flash' }, { id: 'deepseek-v5-pro' }, { id: '<x>' }, {}] }) });
+  assert.deepEqual(await Ai.listModels('k', { fetch }), { ok: true, models: ['deepseek-flash', 'deepseek-v5-pro'] });
+  assert.equal((await Ai.listModels('k', { fetch: async () => { throw new Error('x'); } })).ok, false);
+});
+
 test('任务拆解结果校验', () => {
   assert.deepEqual(Coach.subtasks({ subtasks: [' a ', '', 'b'] }), ['a', 'b']);
   assert.throws(() => Coach.subtasks({}));

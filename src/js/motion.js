@@ -43,6 +43,7 @@ var Motion = (function () {
     var dt = last ? Math.min((now - last) / 1000, 1 / 20) : 1 / 60;
     last = now;
     active = active.filter(function (o) { return o.step(dt); });
+    Glass.flush();
     raf = active.length ? requestAnimationFrame(frame) : 0;
   }
   function settled(s, eps) { return Math.abs(s.x - s.target) < eps && Math.abs(s.v) < eps * 20; }

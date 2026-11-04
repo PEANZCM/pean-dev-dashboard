@@ -230,6 +230,10 @@ ipcMain.handle('ai:chat', (e, o) => {
     model: o.model, deep: !!o.deep, json: !!o.json, maxTokens: o.maxTokens
   }, { base: AI_BASE });
 });
+ipcMain.handle('ai:models', () => {
+  const key = readKey();
+  return key ? ai.listModels(key, { base: AI_BASE }) : { ok: false, noKey: true };
+});
 
 // ===== IPC: 打开外部链接 =====
 ipcMain.handle('shell:openExternal', (e, url) => {

@@ -40,7 +40,7 @@ var Glass = (function () {
   };
 
   var defs = null, filters = {}, fseq = 0, items = [], quality = 'high', dark = false, ro = null;
-  var dirtyHosts = new Set(), maskRaf = 0;
+  var dirtyHosts = new Set(), movedHosts = new Set(), maskRaf = 0;
 
   function ensureDefs() {
     if (defs) return defs;
@@ -164,39 +164,55 @@ var Glass = (function () {
 
   function flushMasks() {
     maskRaf = 0;
-    dirtyHosts.forEach(updateMask);
+    dirtyHosts.forEach(function (h) { measureHoles(h); updateMask(h); movedHosts.delete(h); });
     dirtyHosts.clear();
+    movedHosts.forEach(updateMask);
+    movedHosts.clear();
   }
 
+  // 弹簧每帧都走这里，所以位置和圆角只在内容变化时量一次
+  function measureHoles(hostIt) {
+    // 滑块不挖洞：它变成透镜时要折射的正是下面的标签栏和文字，而不是最底下的壁纸
+    var list = items.filter(function (x) { return x.host === hostIt && x.el.offsetParent && !x.el.disabled && !x.el.classList.contains('tab-glider'); });
+    var body = hostIt.el.querySelector('.sheet-body'), clip = body && body.offsetParent ? layoutIn(body, hostIt.el) : null;
+    hostIt.holes = list.map(function (it) {
+      var r = layoutIn(it.el, hostIt.el);
+      return {
+        it: it, r: r, clip: clip && body.contains(it.el) ? clip : null,
+        rad: Math.min(parseFloat(getComputedStyle(it.el).borderTopLeftRadius) || 0, r.w / 2, r.h / 2)
+      };
+    });
+  }
+
+  function corner(rx, ry, x, y) { return (rx ? 'A' + n2(rx) + ' ' + n2(ry) + ' 0 0 1 ' : 'L') + n2(x) + ' ' + n2(y); }
+  function n2(v) { return +v.toFixed(2); }
+
+  // 一个洞的路径：和按钮自身的 transform 完全一致（以中心为原点缩放 + 平移，motion.js 保证没有斜切）。
+  // 滚动区里的洞在边界处切平，滚出去的不画，否则底栏上会露出一块块没有磨砂的形状
+  function holePath(h) {
+    var r = h.r, xf = h.it.el._xf, sx = xf ? xf.a : 1, sy = xf ? xf.d : 1;
+    var cx = r.x + r.w / 2 + (xf ? xf.tx : 0), cy = r.y + r.h / 2 + (xf ? xf.ty : 0);
+    var hw = r.w * sx / 2, hh = r.h * sy / 2, x0 = cx - hw, x1 = cx + hw, y0 = cy - hh, y1 = cy + hh;
+    var rx = h.rad * sx, top = h.rad * sy, bot = top;
+    if (h.clip) {
+      var c0 = h.clip.y, c1 = c0 + h.clip.h;
+      if (y1 <= c0 || y0 >= c1) return '';
+      if (y0 < c0) { y0 = c0; top = 0; }
+      if (y1 > c1) { y1 = c1; bot = 0; }
+    }
+    var rt = top ? rx : 0, rb = bot ? rx : 0;
+    return 'M' + n2(x0 + rt) + ' ' + n2(y0) + 'L' + n2(x1 - rt) + ' ' + n2(y0) + corner(rt, top, x1, y0 + top) +
+      'L' + n2(x1) + ' ' + n2(y1 - bot) + corner(rb, bot, x1 - rb, y1) +
+      'L' + n2(x0 + rb) + ' ' + n2(y1) + corner(rb, bot, x0, y1 - bot) +
+      'L' + n2(x0) + ' ' + n2(y0 + top) + corner(rt, top, x0 + rt, y0) + 'Z';
+  }
+
+  // 用 clip-path 而不是 SVG 图片遮罩：图片要异步解码，洞会落后按钮好几帧；路径和 transform 同一帧生效
   function updateMask(hostIt) {
     var bg = hostIt.target, W = bg.offsetWidth, H = bg.offsetHeight;
-    if (W < 4 || H < 4) return;
-    // 滑块不挖洞：它变成透镜时要折射的正是下面的标签栏和文字，而不是最底下的壁纸
-    var holes = items.filter(function (x) { return x.host === hostIt && x.el.offsetParent && !x.el.disabled && !x.el.classList.contains('tab-glider'); });
-    if (!holes.length) { bg.style.webkitMaskImage = bg.style.maskImage = ''; return; }
-    // 弹层里的滚动区：滚出视野的按钮不能挖洞，否则底栏上会露出一块块没有磨砂的形状
-    var body = hostIt.el.querySelector('.sheet-body'), clip = body && body.offsetParent ? layoutIn(body, hostIt.el) : null;
-    var free = '', clipped = '';
-    holes.forEach(function (it) {
-      var r = layoutIn(it.el, hostIt.el), xf = it.el._xf, inBody = clip && body.contains(it.el);
-      if (inBody && (r.y + r.h < clip.y || r.y > clip.y + clip.h)) return;
-      var rad = Math.min(parseFloat(getComputedStyle(it.el).borderTopLeftRadius) || 0, r.w / 2, r.h / 2);
-      var cx = r.x + r.w / 2, cy = r.y + r.h / 2;
-      // 和元素自身的 transform 完全一致：以中心为原点的线性变换 + 平移
-      var m = xf ? [xf.a, xf.b, xf.c, xf.d, cx + xf.tx - (xf.a * cx + xf.c * cy), cy + xf.ty - (xf.b * cx + xf.d * cy)] : null;
-      var rect = '<rect x="' + r.x.toFixed(1) + '" y="' + r.y.toFixed(1) + '" width="' + r.w + '" height="' + r.h + '" rx="' + rad.toFixed(1) + '"' +
-        (m ? ' transform="matrix(' + m.map(function (v) { return v.toFixed(4); }).join(' ') + ')"' : '') + '/>';
-      if (inBody) clipped += rect; else free += rect;
-    });
-    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + W + '" height="' + H + '"><defs>' +
-      (clip ? '<clipPath id="c"><rect x="' + clip.x + '" y="' + clip.y + '" width="' + clip.w + '" height="' + clip.h + '"/></clipPath>' : '') +
-      '<mask id="m"><rect width="' + W + '" height="' + H + '" fill="#fff"/><g fill="#000">' + free + '</g>' +
-      (clipped ? '<g fill="#000" clip-path="url(#c)">' + clipped + '</g>' : '') + '</mask></defs>' +
-      '<rect width="' + W + '" height="' + H + '" fill="#fff" mask="url(#m)"/></svg>';
-    var url = 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '")';
-    bg.style.webkitMaskImage = bg.style.maskImage = url;
-    bg.style.webkitMaskSize = bg.style.maskSize = W + 'px ' + H + 'px';
-    bg.style.webkitMaskRepeat = bg.style.maskRepeat = 'no-repeat';
+    if (W < 4 || H < 4 || !hostIt.holes) return;
+    var path = hostIt.holes.map(holePath).join('');
+    bg.style.clipPath = path ? 'path(evenodd,"M0 0H' + W + 'V' + H + 'H0Z' + path + '")' : '';
   }
 
   function hostOf(el) {
@@ -249,7 +265,14 @@ var Glass = (function () {
     // 种类变了（打卡按钮 蓝 → 绿、滑块 → 透镜）或主题切换后调用
     refresh: function (el) { if (el) { if (el._glass) update(el._glass); } else items.forEach(update); },
     // 按钮的弹簧 transform 变了：它所在容器的洞跟着动
-    moved: function (el) { var it = el._glass; if (it && it.host) markHost(it.host); },
+    moved: function (el) {
+      var it = el._glass;
+      if (!it || !it.host) return;
+      movedHosts.add(it.host);
+      if (!maskRaf) maskRaf = requestAnimationFrame(flushMasks);
+    },
+    // 弹簧写完这一帧的 transform 后调用：洞和按钮在同一帧更新，不等下一帧
+    flush: flushMasks,
     // 容器里的内容变了（重新渲染、编辑器加了按钮）
     relayout: function () {
       items = items.filter(function (it) { if (it.el.isConnected) return true; ro.unobserve(it.target); return false; });

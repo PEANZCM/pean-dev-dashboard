@@ -6,6 +6,7 @@
 // ============================================================
 const BASE = 'https://api.deepseek.com';
 const MODELS = { flash: 'deepseek-flash', pro: 'deepseek-v4-pro' };
+const MODEL_ID = /^[a-z0-9][a-z0-9._-]*-[a-z0-9._-]+$/i;
 const WEEK = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
 
 function localTime(now) {
@@ -21,6 +22,7 @@ function localTime(now) {
 // 深度任务默认用 pro + 思考；短文案用 flash 且关掉思考，秒回
 function pickModel(setting, deep) {
   if (setting === 'flash' || setting === 'pro') return MODELS[setting];
+  if (MODEL_ID.test(setting || '')) return setting;   // 设置里选的是接口列出的具体模型
   return deep ? MODELS.pro : MODELS.flash;
 }
 
@@ -74,4 +76,20 @@ async function chat(key, o, opts) {
   }
 }
 
-module.exports = { MODELS, localTime, pickModel, buildBody, httpError, chat };
+// 账号当前能用的模型，直接问接口，DeepSeek 上新模型时设置里自动出现
+async function listModels(key, opts) {
+  const options = opts || {};
+  try {
+    const res = await (options.fetch || fetch)((options.base || BASE) + '/models', {
+      headers: { Authorization: 'Bearer ' + key }, signal: AbortSignal.timeout(15000)
+    });
+    if (!res.ok) return { ok: false, error: httpError(res.status) };
+    const data = await res.json();
+    const ids = (data && Array.isArray(data.data) ? data.data : []).map((m) => m && m.id).filter((id) => MODEL_ID.test(id || ''));
+    return { ok: true, models: ids };
+  } catch (e) {
+    return { ok: false, offline: true, error: '连不上 DeepSeek，检查一下网络' };
+  }
+}
+
+module.exports = { MODELS, localTime, pickModel, buildBody, httpError, chat, listModels };

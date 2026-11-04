@@ -19,6 +19,7 @@ contextBridge.exposeInMainWorld('dashboardAPI', {
   aiSetKey: (key) => ipcRenderer.invoke('ai:setKey', key),
   aiClearKey: () => ipcRenderer.invoke('ai:clearKey'),
   aiChat: (o) => ipcRenderer.invoke('ai:chat', o),
+  aiModels: () => ipcRenderer.invoke('ai:models'),
 
   // 系统通知
   showNotification: (title, body) => ipcRenderer.invoke('notification:show', title, body),

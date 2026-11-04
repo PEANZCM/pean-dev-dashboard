@@ -192,11 +192,25 @@ function renderAISettings() {
   $('aiKeyClear').style.display = AI.ready ? '' : 'none';
   $('aiTest').style.display = AI.ready ? '' : 'none';
   $('aiToneSelect').value = s.aiTone;
+  addModelOption(s.aiModel);
   $('aiModelSelect').value = s.aiModel;
   $('aiCustomTone').style.display = s.aiTone === 'custom' ? '' : 'none';
   $('aiCustomTone').value = s.aiCustomTone || '';
   $('aiDiaryToggle').classList.toggle('on', !!s.aiDiary);
   $('aiMoodToggle').classList.toggle('on', !!s.aiMood);
+}
+
+// 接口列出的其他模型追加到下拉框；已选的模型即使暂时拿不到列表也要留在选项里
+function addModelOption(id) {
+  var sel = $('aiModelSelect');
+  if (!id || sel.querySelector('option[value="' + CSS.escape(id) + '"]')) return;
+  sel.appendChild(el('option', '', { value: id, textContent: '全部用 ' + id }));
+}
+
+async function loadModels() {
+  var r = await dashboardAPI.aiModels();
+  if (!r.ok) return;
+  r.models.filter(function (id) { return id !== 'deepseek-flash' && id !== 'deepseek-v4-pro'; }).forEach(addModelOption);
 }
 
 function aiSet(k, v) {
@@ -209,6 +223,7 @@ async function refreshAIStatus() {
   var st = await dashboardAPI.aiStatus();
   AI.ready = st.hasKey; AI.canEncrypt = st.canEncrypt;
   renderAISettings(); renderReview(); renderQuoteCard();
+  if (AI.ready) loadModels();
 }
 
 function bindAI() {
