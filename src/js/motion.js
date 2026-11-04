@@ -1,7 +1,9 @@
 // ============================================================
 //  动效：一套弹簧管所有交互
-//  · 按钮：按下放大；按住可以拖着走一段（越拉阻力越大，像橡皮筋），
-//    沿拖动方向拉伸；松手带着速度弹回原位，果冻回弹（拉长 → 压扁 → 回正）
+//  · 按钮：按下放大；按住可以拖着走一段（越拉阻力越大，像橡皮筋）。
+//    拉伸只沿水平 / 竖直方向、按像素计算：不产生剪切，药丸按钮斜着拖也不会歪；
+//    形状只由手指拉出的距离决定，不看速度，手的细微抖动不会让按钮乱抖。
+//    松手弹回一次，形状几乎不过冲
 //  · 标签滑块：按住拖动时变成透明放大镜，浮到文字上方、比底下的胶囊更大，
 //    按速度动态拉伸；松手吸附到最近的标签，飞行中同样拉伸
 //  · 弹层：按住顶部往下拖，1:1 跟手，拖得够远或甩得够快就关掉，否则弹回
@@ -11,12 +13,12 @@ var Motion = (function () {
   'use strict';
 
   var D = {
-    pressScale: 1.08, pressResp: 0.24, pressDamp: 0.55,
+    pressScale: 1.08, pressResp: 0.24, pressDamp: 0.6,   // 松手缩回过冲约 9%
     rubber: 22,                       // 按钮最多被拖出多远（px），越接近越拉不动
-    pressStretch: 0.9, pressMax: 0.16, // 按住不动时朝手指方向的拉伸
-    dragStretch: 0.6, dragMax: 0.2,   // 拖动时按速度拉伸
-    backResp: 0.36, backDamp: 0.5,    // 松手弹回
-    jelly: 0.32,                      // 果冻回弹阻尼（越小越 Q）
+    pullStretch: 6,                   // 每个方向最多拉长多少像素（宽按钮横向几乎看不出，纵向明显）
+    waist: 0.25,                      // 拉长一个方向时，另一方向收窄的比例
+    backResp: 0.36, backDamp: 0.62,   // 位置弹回：过冲约 8%，有一次清楚的回弹
+    jelly: 0.8,                       // 形状回正阻尼：过冲约 1.5%，几乎看不到晃动
     tabResp: 0.42, tabDamp: 0.7,
     lensScale: 1.45, flyScale: 1.22, tabStretch: 0.5, tabMax: 0.2
   };
@@ -45,10 +47,10 @@ var Motion = (function () {
   }
   function settled(s, eps) { return Math.abs(s.x - s.target) < eps && Math.abs(s.v) < eps * 20; }
 
-  // 缩放 × 沿 th 轴的体积守恒拉伸（st<0 = 沿该轴压扁）
-  function matrix(sc, st, th) {
-    var sx = 1 + Math.max(st, -0.3), sy = 1 / sx, c = Math.cos(th), n = Math.sin(th);
-    return [sc * (c * c * sx + n * n * sy), sc * c * n * (sx - sy), sc * (n * n * sx + c * c * sy)];
+  // 只沿水平 / 竖直拉伸：矩阵没有斜切项，按钮的边永远保持水平和竖直
+  function axisMatrix(sc, ex, ey, w, h) {
+    var rx = ex / w, ry = ey / h;
+    return [sc * (1 + rx - D.waist * ry), 0, sc * (1 + ry - D.waist * rx)];
   }
 
   // iOS 式橡皮筋：拉得越远越吃力，永远到不了上限
@@ -79,29 +81,23 @@ var Motion = (function () {
     if (window.Glass) Glass.moved(el);
   }
 
-  /* ---------- 按钮：按压 + 橡皮筋拖动 + 果冻回弹 ---------- */
+  /* ---------- 按钮：按压 + 橡皮筋拖动 + 回弹 ---------- */
   function pressable(el) {
     if (el._press) return;
     var o = el._press = {
-      ox: new Spring(0), oy: new Spring(0), sc: new Spring(1), st: new Spring(0, 0.18, 0.85), ang: 0,
-      rect: null, down: false, x0: 0, y0: 0, moved: false, vel: new Velocity(), lastMove: 0,
+      ox: new Spring(0), oy: new Spring(0), sc: new Spring(1),
+      ex: new Spring(0, 0.3, 0.8), ey: new Spring(0, 0.3, 0.8),   // 两个方向各拉长多少像素
+      w: 1, h: 1, down: false, x0: 0, y0: 0, moved: false, vel: new Velocity(), lastMove: 0,
       step: function (dt) {
         if (o.down) {
-          // 手停住 40ms 视为静止：速度拉伸平滑收回，只剩朝手指方向的拉伸
-          var v = performance.now() - o.lastMove > 40 ? [0, 0] : o.vel.get();
-          var sp = Math.hypot(v[0], v[1]);
-          var pull = Math.hypot(o.ox.x, o.oy.x) / Math.max(D.rubber, 1);
-          var st = Math.max(Math.min(sp * P('dragStretch') * 0.0004, D.dragMax), Math.min(pull * P('pressStretch') * 0.14, D.pressMax));
-          if (sp > 80 || pull > 0.15) {
-            var a = sp > 80 ? Math.atan2(v[1], v[0]) : Math.atan2(o.oy.x, o.ox.x);
-            var dA = a - o.ang; dA -= Math.PI * Math.round(dA / Math.PI);
-            o.ang += dA * (1 - Math.exp(-dt / 0.05));
-          }
-          o.st.tune(0.18, 0.85).target = st;
+          // 按下时形状直接由当前拉出的距离算出，同一个位置永远是同一个形状
+          var L = Math.max(D.rubber, 1);
+          o.ex.jump(Math.min(Math.abs(o.ox.x) / L, 1) * P('pullStretch'));
+          o.ey.jump(Math.min(Math.abs(o.oy.x) / L, 1) * P('pullStretch'));
         }
-        o.ox.step(dt); o.oy.step(dt); o.sc.step(dt); o.st.step(dt);
-        var rest = !o.down && settled(o.ox, 0.05) && settled(o.oy, 0.05) && settled(o.sc, 0.0005) && settled(o.st, 0.0005);
-        writeXf(el, o.ox.x, o.oy.x, rest ? null : matrix(o.sc.x, o.st.x, o.ang));
+        o.ox.step(dt); o.oy.step(dt); o.sc.step(dt); o.ex.step(dt); o.ey.step(dt);
+        var rest = !o.down && settled(o.ox, 0.05) && settled(o.oy, 0.05) && settled(o.sc, 0.0005) && settled(o.ex, 0.02) && settled(o.ey, 0.02);
+        writeXf(el, o.ox.x, o.oy.x, rest ? null : axisMatrix(o.sc.x, o.ex.x, o.ey.x, o.w, o.h));
         return !rest;
       }
     };
@@ -110,6 +106,7 @@ var Motion = (function () {
       try { el.setPointerCapture(e.pointerId); } catch (err) {}
       o.down = true; o.moved = false;
       o.x0 = e.clientX; o.y0 = e.clientY;
+      o.w = el.offsetWidth || 1; o.h = el.offsetHeight || 1;
       o.vel = new Velocity(); o.vel.add(e.timeStamp, e.clientX, e.clientY); o.lastMove = performance.now();
       o.sc.tune(D.pressResp, P('pressDamp')).target = P('pressScale');
       kick(o);
@@ -121,19 +118,20 @@ var Motion = (function () {
       o.lastMove = performance.now();
       var dx = e.clientX - o.x0, dy = e.clientY - o.y0;
       if (Math.hypot(dx, dy) > 8) o.moved = true;
-      var v = o.vel.get(), L = P('rubber');
-      o.ox.jump(rubber(dx, L), v[0] * 0.3);
-      o.oy.jump(rubber(dy, L), v[1] * 0.3);
+      var L = P('rubber');
+      o.ox.jump(rubber(dx, L));
+      o.oy.jump(rubber(dy, L));
       kick(o);
     });
     function up() {
       if (!o.down) return;
       o.down = false;
       var v = performance.now() - o.lastMove > 60 ? [0, 0] : o.vel.get();
-      o.ox.tune(D.backResp, P('backDamp')); o.ox.target = 0; o.ox.v = v[0] * 0.25;
-      o.oy.tune(D.backResp, P('backDamp')); o.oy.target = 0; o.oy.v = v[1] * 0.25;
+      o.ox.tune(D.backResp, P('backDamp')); o.ox.target = 0; o.ox.v = v[0] * 0.1;
+      o.oy.tune(D.backResp, P('backDamp')); o.oy.target = 0; o.oy.v = v[1] * 0.1;
       o.sc.tune(D.pressResp, P('pressDamp')).target = 1;
-      o.st.tune(0.3, P('jelly')).target = 0;
+      o.ex.tune(0.3, P('jelly')).target = 0;
+      o.ey.tune(0.3, P('jelly')).target = 0;
       kick(o);
     }
     el.addEventListener('pointerup', up);
@@ -147,7 +145,7 @@ var Motion = (function () {
   /* ---------- 标签滑块 ---------- */
   var G = null;
   function initTabs(tabsEl, glider, onPick) {
-    G = { tabs: tabsEl, glider: glider, cx: new Spring(0), w: new Spring(0), sc: new Spring(1), st: new Spring(0, 0.16, 0.9), scrub: null, ready: false, lens: false };
+    G = { tabs: tabsEl, glider: glider, cx: new Spring(0), w: new Spring(0), sc: new Spring(1), st: new Spring(0, 0.24, 1), scrub: null, ready: false, lens: false };
     function setLens(on) {
       if (G.lens === on) return;
       G.lens = on;
@@ -196,13 +194,14 @@ var Motion = (function () {
       var ts = tabsList(), a = ts[0], b = ts[ts.length - 1];
       var lo = a.offsetLeft + a.offsetWidth / 2, hi = b.offsetLeft + b.offsetWidth / 2, want = x - s.off;
       // 拖出两端时同样是橡皮筋
-      G.cx.jump(want < lo ? lo + rubber(want - lo, 18) : want > hi ? hi + rubber(want - hi, 18) : want, s.vel.get()[0]);
+      G.cx.jump(want < lo ? lo + rubber(want - lo, 18) : want > hi ? hi + rubber(want - hi, 18) : want);
       kick(G);
     });
     function up(e) {
       var s = G.scrub;
       if (!s) return;
       G.scrub = null;
+      if (s.moved) G.cx.v = s.vel.get()[0] * 0.5;
       onPick(nearest(s.moved ? G.cx.x : localX(e)));
       kick(G);
     }
