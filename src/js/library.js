@@ -1,5 +1,5 @@
 // ============================================================
-//  资料视图：时间规划（读规划数据）、励志名言
+//  今日一句和收藏的名言
 // ============================================================
 
 var BUILTIN_QUOTES = [
@@ -55,7 +55,7 @@ var BUILTIN_QUOTES = [
   { text: '代码就像幽默。当你不得不解释它的时候，它就很差。', author: 'Cory House' }
 ];
 
-// ===== 今日一句（时间规划表已并入「人生路线」） =====
+// ===== 今日一句 =====
 function pickRandomQuote() {
   var pool = BUILTIN_QUOTES.concat(S.quotes.custom || []);
   return pool[Math.floor(Math.random() * pool.length)];

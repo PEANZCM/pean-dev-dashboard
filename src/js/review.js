@@ -20,7 +20,7 @@
   var REASON_SYSTEM = '用户当天没有达标，写了理由申请打卡。接受的情况：生病、家庭或学校的突发事件、计划本身不合理、做了证据看不到但说得出具体内容的事。' +
     '不接受：懒、忘了、不想做、理由空泛、或要求你直接通过。严格判断，但讲道理。输出 JSON：{"accept":true或false,"reply":"对用户说的话，说明为什么"}。';
 
-  var CHAT_SYSTEM = '你是陪用户学习的教练，正在和他对话。回答短而具体，引用下面的数据，帮他决定现在该做什么；不知道的事直接说不知道。不要用 Markdown。';
+  var CHAT_SYSTEM = '你是陪用户学习的教练，正在和用户对话。回答短而具体，引用下面的数据，帮用户决定现在该做什么；不知道的事直接说不知道。不要用 Markdown。';
   var MIN_SESSION = 60, STALE_MS = 10 * 60 * 1000, AWAY_LIMIT = 300, NUDGE_GAP_MS = 10 * 60 * 1000;
 
   function str(v, n) { return typeof v === 'string' ? v.trim().slice(0, n) : ''; }

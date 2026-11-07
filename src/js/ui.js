@@ -76,7 +76,7 @@ function showSettingsPage(name) {
 
 // ===== 关于软件：版本号和更新记录都来自 CHANGELOG =====
 function renderAbout() {
-  $('aboutVersion').textContent = 'V' + CHANGELOG[0].v;
+  $('aboutVersion').textContent = 'V' + CHANGELOG[0].v + (CHANGELOG[0].edition ? '-' + CHANGELOG[0].edition : '');
   $('aboutLog').innerHTML = CHANGELOG.map(function (x, i) {
     return '<div class="log-row"><div class="log-head"><b>V' + escapeHtml(x.v) + '</b><span>' + escapeHtml(x.title) + '</span>' +
       (i ? '' : '<em>最新</em>') + '<time>' + escapeHtml(x.date) + '</time></div><ul>' +

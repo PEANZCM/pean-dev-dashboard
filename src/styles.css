@@ -169,13 +169,10 @@ h1,h2,h3,p{margin:0}
 .col-main,.col-side{display:flex;flex-direction:column;gap:20px;min-width:0}
 
 
-/* ---------- 6. 今日 · 打卡 ---------- */
-.hero{padding:26px 28px}
+/* ---------- 6. 打卡 ---------- */
 .hero-date{font-size:13px;font-weight:650;color:var(--muted)}
 .dot-sep{margin:0 6px}
-.hero-stage{margin-top:6px;font-size:30px;font-weight:850;letter-spacing:-.02em;line-height:1.2}
 .hero-sub{margin-top:4px;font-size:14px;color:var(--ink-2)}
-.hero-remain{margin-top:10px;font-size:13px;font-weight:650;color:var(--accent)}
 .checkin-row{display:flex;align-items:center;gap:10px;margin-top:22px;flex-wrap:wrap}
 .checkin-btn{
   display:inline-flex;align-items:center;justify-content:center;gap:10px;height:52px;min-width:220px;padding:0 30px;
@@ -188,7 +185,7 @@ h1,h2,h3,p{margin:0}
 .checkin-btn.done{background:linear-gradient(180deg,#2BC77C,#16B364);box-shadow:0 8px 22px rgba(22,179,100,.26)}
 .checkin-emoji{font-size:20px;display:grid}
 
-/* ---------- 7. 今日 · 学习任务 ---------- */
+/* ---------- 7. 学习任务 ---------- */
 .stage{border-radius:var(--r-lg)}
 .stage + .stage{margin-top:4px}
 .stage-head{display:flex;align-items:center;gap:14px;padding:12px;border-radius:var(--r-lg);cursor:pointer;transition:background .2s}
@@ -222,7 +219,7 @@ h1,h2,h3,p{margin:0}
 .tx.star{font-weight:700}
 .star-icon{color:var(--warning)}
 
-/* ---------- 8. 今日 · 右栏 ---------- */
+/* ---------- 8. 总进度 · 连续天数 ---------- */
 .progress-card{display:flex;align-items:center;gap:18px;padding:20px 22px}
 .ring{position:relative;width:104px;height:104px;flex:none}
 .ring svg{width:100%;height:100%}
@@ -584,6 +581,25 @@ body.dark.glass-on [data-glass=tint]{color:#fff}
 #aiKeyInput{padding:6px 10px}
 #aiCustomTone{margin-bottom:10px}
 
+/* ---------- 18. 每日计划与打卡审核 ---------- */
+.plan-empty{font-size:13px}
+.plan-card .head-tools{display:flex;align-items:center;gap:10px}
+.review-alert{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;margin-bottom:8px;border-radius:var(--r-sm);background:var(--tint);font-size:13px;font-weight:650}
+.chat-log{min-height:220px;gap:8px}
+.chat-msg{max-width:82%;padding:8px 12px;border-radius:var(--r-lg);background:var(--fill);font-size:13.5px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;align-self:flex-start}
+.chat-msg.user{align-self:flex-end;background:var(--tint)}
+.chat-draft{margin:0 22px 10px;padding:12px 14px;border-radius:var(--r-lg);background:var(--fill)}
+.chat-draft .pill-btn{margin-top:8px}
+.chat-foot{align-items:flex-end}
+.chat-foot .input{flex:1;min-width:0}
+.review-status{font-size:15px;font-weight:800}
+.review-status.busy,.review-status.wait{color:var(--ink-2)}
+.review-status.ok{color:var(--success)}
+.review-status.fail{color:var(--danger)}
+#reviewEvidence{margin-bottom:0}
+.folder-path{font-size:12.5px;font-weight:500;color:var(--ink-2);overflow-wrap:anywhere;min-width:0}
+.set-row .switch,.set-row .pill-btn{flex:none}
+
 /* ---------- 19. 伴学首页 ---------- */
 .companion{position:sticky;top:90px;display:flex;flex-direction:column;gap:14px;height:calc(100vh - 122px);min-height:520px;padding:22px 26px}
 .comp-head .hero-sub{margin-top:2px;font-size:12.5px}
@@ -608,22 +624,3 @@ body.dark.glass-on [data-glass=tint]{color:#fff}
 .streak-card .checkin-row{margin:16px 0 0}
 .streak-card .checkin-btn{flex:1 0 100%;min-width:0;height:48px}
 .streak-card .pill-btn{flex:1;justify-content:center}
-
-/* ---------- 18. 每日计划与打卡审核 ---------- */
-.plan-empty{font-size:13px}
-.plan-card .head-tools{display:flex;align-items:center;gap:10px}
-.review-alert{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;margin-bottom:8px;border-radius:var(--r-sm);background:var(--tint);font-size:13px;font-weight:650}
-.chat-log{min-height:220px;gap:8px}
-.chat-msg{max-width:82%;padding:8px 12px;border-radius:var(--r-lg);background:var(--fill);font-size:13.5px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;align-self:flex-start}
-.chat-msg.user{align-self:flex-end;background:var(--tint)}
-.chat-draft{margin:0 22px 10px;padding:12px 14px;border-radius:var(--r-lg);background:var(--fill)}
-.chat-draft .pill-btn{margin-top:8px}
-.chat-foot{align-items:flex-end}
-.chat-foot .input{flex:1;min-width:0}
-.review-status{font-size:15px;font-weight:800}
-.review-status.busy,.review-status.wait{color:var(--ink-2)}
-.review-status.ok{color:var(--success)}
-.review-status.fail{color:var(--danger)}
-#reviewEvidence{margin-bottom:0}
-.folder-path{font-size:12.5px;font-weight:500;color:var(--ink-2);overflow-wrap:anywhere;min-width:0}
-.set-row .switch,.set-row .pill-btn{flex:none}

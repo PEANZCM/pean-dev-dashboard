@@ -71,7 +71,7 @@ async function reminderText() {
   var fallback = '今天还没打卡哦！坚持下去，别断了连续天数';
   if (!AI.ready) return fallback;
   var r = await aiAsk({
-    system: aiPersona() + '\n用户今天还没打卡，写一条系统通知提醒他，30 字以内，结合数据，不要标题。',
+    system: aiPersona() + '\n用户今天还没打卡，写一条系统通知提醒用户，30 字以内，结合数据，不要标题。',
     messages: [{ role: 'user', content: aiContext() }], maxTokens: 120
   });
   return r.ok ? r.text.slice(0, 80) : fallback;

@@ -133,7 +133,7 @@ function beginStudy() {
   renderStudy();
   startClock();
   if (!LOCAL.track) showToast('打开设置里的时长统计后，走神时我才能提醒你');
-  coachSay('用户刚开始一段陪学，要做的事写在【陪学】里。用一句话陪他开始，点出这段时间该做到什么，30 字以内。', '', '');
+  coachSay('用户刚开始一段陪学，要做的事写在【陪学】里。用一句话陪用户开始，点出这段时间该做到什么，30 字以内。', '', '');
 }
 
 async function finishStudy() {
@@ -177,7 +177,7 @@ function onUsageSample(sample) {
   Comp.nudged = true;
   renderOrbStatus();
   var fb = '已经 ' + Math.round(Comp.away.sec / 60) + ' 分钟没碰开发软件了，回来继续？';
-  coachSay('用户在陪学计时中，已经 ' + Math.round(Comp.away.sec / 60) + ' 分钟没有使用开发软件。写一句话把他叫回来，30 字以内。', fb, 'nudge').then(function (t) {
+  coachSay('用户在陪学计时中，已经 ' + Math.round(Comp.away.sec / 60) + ' 分钟没有使用开发软件。写一句话把用户叫回来，30 字以内。', fb, 'nudge').then(function (t) {
     dashboardAPI.showNotification('PEAN的开发小天地', (t || fb).slice(0, 80));
   });
 }

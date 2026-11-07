@@ -1,6 +1,6 @@
 {
   "name": "learning-dashboard",
-  "version": "1.7.3",
+  "version": "2.0.0",
   "description": "PEAN的开发小天地",
   "main": "main.js",
   "scripts": {
@@ -17,10 +17,6 @@
     "productName": "PEAN的开发小天地",
     "directories": {
       "output": "dist"
-    },
-    "publish": {
-      "provider": "generic",
-      "url": "https://example.com"
     },
     "files": [
       "main.js",
@@ -39,7 +35,8 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "shortcutName": "PEAN的开发小天地"
+      "shortcutName": "PEAN的开发小天地",
+      "artifactName": "PEAN-Dashboard-Setup-${version}.${ext}"
     }
   },
   "devDependencies": {
