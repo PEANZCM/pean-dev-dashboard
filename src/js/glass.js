@@ -39,7 +39,7 @@ var Glass = (function () {
     sheet:  { blur: 30,  k: 0.3, max: 24, l: [255, 255, 255, 0.74], d: [24, 26, 34, 0.80] }
   };
 
-  var defs = null, filters = {}, fseq = 0, items = [], quality = 'high', dark = false, ro = null;
+  var defs = null, filters = {}, fseq = 0, items = [], quality = 'high', dark = false, ro = null, mo = null;
   var dirtyHosts = new Set(), movedHosts = new Set(), maskRaf = 0;
 
   function ensureDefs() {
@@ -236,7 +236,10 @@ var Glass = (function () {
     items.push(it);
     it.host = hostOf(el);
     ro.observe(target);
-    if (it.host) ro.observe(el);
+    if (it.host) {
+      ro.observe(el);
+      mo.observe(el, { attributes: true, attributeFilter: ['disabled'] });
+    }
     update(it);
     return it;
   }
@@ -247,6 +250,10 @@ var Glass = (function () {
         var it = e.target._glass || (e.target.parentElement && e.target.parentElement._glass);
         if (it) update(it);
       });
+    });
+    // 禁用的按钮不挖洞：半透明的按钮下面会露出一块没有磨砂的壁纸。任何地方改 disabled 都要重新量
+    mo = new MutationObserver(function (list) {
+      list.forEach(function (m) { var it = m.target._glass; if (it && it.host) markHost(it.host); });
     });
     // 先注册容器，再注册按钮，按钮才能找到自己所在的容器
     var all = Array.prototype.slice.call(document.querySelectorAll('[data-glass]'));
