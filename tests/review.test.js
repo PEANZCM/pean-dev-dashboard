@@ -12,10 +12,12 @@ const Evidence = require('../evidence.js');
 const at = (s) => new Date(s);
 const noEv = { folderCount: 0, folders: [], repos: [], tracking: false, usage: {}, diary: { chars: 0 }, shots: 0 };
 
-test('晚上商量明天，白天和凌晨商量今天', () => {
+test('晚上商量明天，白天和凌晨商量今天；今天还没计划且未打卡时晚上仍优先商量今天', () => {
   assert.equal(Review.planTarget(at('2026-11-04T21:00:00')), '2026-11-05');
   assert.equal(Review.planTarget(at('2026-11-04T10:00:00')), '2026-11-04');
   assert.equal(Review.planTarget(at('2026-11-05T01:30:00')), '2026-11-05');
+  assert.equal(Review.planTarget(at('2026-11-04T21:00:00'), { plans: {} }, { dates: [] }), '2026-11-04');
+  assert.equal(Review.planTarget(at('2026-11-04T21:00:00'), { plans: { '2026-11-04': { items: [{ text: 'a' }] } } }, { dates: [] }), '2026-11-05');
 });
 
 test('计划：编造的任务 id 不保留，超过上限截断，plan 为 null 表示还在讨论', () => {

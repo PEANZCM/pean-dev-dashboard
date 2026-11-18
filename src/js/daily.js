@@ -20,7 +20,7 @@ function allTaskIds() {
 
 // ===== 今日计划卡片 =====
 function renderPlanCard() {
-  var today = Dates.today(), plan = S.daily.plans[today], box = $('planItems'), target = Review.planTarget();
+  var today = Dates.today(), plan = S.daily.plans[today], box = $('planItems'), target = Review.planTarget(null, S.daily, S.checkin);
   box.innerHTML = '';
   $('planTalkBtn').textContent = target === today ? (plan ? '调整今天的计划' : '和教练商量今天') : (S.daily.plans[target] ? '调整明天的计划' : '商量明天的计划');
   $('planTalkBtn').style.display = AI.ready ? '' : 'none';
@@ -70,10 +70,28 @@ function renderReviewAlert() {
 // ===== 商量计划：AI 先拟一份，你说怎么改，满意了点「定下」 =====
 function planChat() { return S.daily.chats[PC.date] || (S.daily.chats[PC.date] = { messages: [], draft: null }); }
 
+function syncPlanDateSeg() {
+  var today = Dates.today();
+  document.querySelectorAll('#planDateSeg .seg-btn').forEach(function (b) {
+    var on = (b.dataset.target === 'today') === (PC.date === today);
+    b.classList.toggle('active', on);
+  });
+}
+
+function switchPlanDate(date) {
+  if (PC.busy || PC.date === date) return;
+  PC.date = date;
+  $('planChatTitle').textContent = '商量' + dayName(PC.date) + '的计划';
+  syncPlanDateSeg();
+  renderPlanChat();
+  if (!planChat().messages.length) sendPlanChat('');
+}
+
 function openPlanChat() {
   if (!AI.ready) { showToast('先在设置里填写 API Key'); return; }
-  PC.date = Review.planTarget();
+  PC.date = Review.planTarget(null, S.daily, S.checkin);
   $('planChatTitle').textContent = '商量' + dayName(PC.date) + '的计划';
+  syncPlanDateSeg();
   openSheet('planChatSheet');
   renderPlanChat();
   if (!planChat().messages.length) sendPlanChat('');
@@ -383,6 +401,11 @@ async function setLocal(patch) {
 
 function bindDaily() {
   on('planTalkBtn', openPlanChat);
+  document.querySelectorAll('#planDateSeg .seg-btn').forEach(function (b) {
+    b.addEventListener('click', function () {
+      switchPlanDate(b.dataset.target === 'today' ? Dates.today() : Dates.offset(1));
+    });
+  });
   on('planChatSend', function () {
     var t = $('planChatInput').value.trim();
     if (!t) return;

@@ -36,7 +36,11 @@ function stamp() {
     for (let i = 0; i < 10 && running(); i++) await sleep(500);
     // 留在托盘时关窗口只会收起：让已运行的实例自己退出（--quit 只转发给它，不会开新窗口）
     if (running()) spawn(EXE, ['--quit'], { detached: true, stdio: 'ignore' }).unref();
-    for (let i = 0; i < 20 && running(); i++) await sleep(500);
+    for (let i = 0; i < 10 && running(); i++) await sleep(500);
+    if (running()) {
+      try { execFileSync('taskkill', ['/F', '/IM', 'PEAN的开发小天地.exe'], { stdio: 'ignore' }); } catch (e) {}
+      for (let i = 0; i < 10 && running(); i++) await sleep(500);
+    }
     if (running()) throw new Error('软件没有正常退出，请手动关闭后重试');
   }
 

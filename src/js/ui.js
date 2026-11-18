@@ -42,6 +42,8 @@ function openSheet(id, onClose) {
   s.style.transform = '';
   s.classList.add('active');
   Glass.refresh(s);
+  Glass.relayout();
+  Glass.flush();
 }
 
 function closeSheet(immediate) {
@@ -72,6 +74,7 @@ function showSettingsPage(name) {
   });
   document.querySelector('.settings-sheet .sheet-body').scrollTop = 0;
   Glass.relayout();
+  Glass.flush();
 }
 
 // ===== 关于软件：版本号和更新记录都来自 CHANGELOG =====

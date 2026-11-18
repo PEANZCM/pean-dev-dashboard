@@ -122,6 +122,11 @@ var Motion = (function () {
       var L = P('rubber');
       o.ox.jump(rubber(dx, L));
       o.oy.jump(rubber(dy, L));
+      var stretchL = Math.max(D.rubber, 1);
+      o.ex.jump(Math.min(Math.abs(o.ox.x) / stretchL, 1) * P('pullStretch'));
+      o.ey.jump(Math.min(Math.abs(o.oy.x) / stretchL, 1) * P('pullStretch'));
+      writeXf(el, o.ox.x, o.oy.x, axisMatrix(o.sc.x, o.ex.x, o.ey.x, o.w, o.h));
+      if (window.Glass) Glass.flush();
       kick(o);
     });
     function up() {

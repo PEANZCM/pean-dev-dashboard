@@ -34,9 +34,9 @@ var Glass = (function () {
     red:    { blur: 1.5, k: 1.1, max: 36, l: [255, 69, 59, 0.50],  d: [255, 69, 59, 0.46] },
     glider: { blur: 1,   k: 1.3, max: 36, l: [255, 255, 255, 0.62], d: [255, 255, 255, 0.14] },
     lens:   { blur: 0.3, k: 1.2, max: 40, mag: 0.2, chroma: 0.08, l: [255, 255, 255, 0.05], d: [255, 255, 255, 0.04] },  // 滑块被拖起时：透明放大镜
-    tabs:   { blur: 12,  k: 0.5, max: 18, l: [255, 255, 255, 0.28], d: [22, 24, 32, 0.42] },
-    card:   { blur: 24,  k: 0.5, max: 24, l: [255, 255, 255, 0.48], d: [22, 24, 32, 0.56] },
-    sheet:  { blur: 30,  k: 0.3, max: 24, l: [255, 255, 255, 0.74], d: [24, 26, 34, 0.80] }
+    tabs:   { blur: 12,  k: 0.5, max: 18, chroma: 0, l: [255, 255, 255, 0.28], d: [22, 24, 32, 0.42] },
+    card:   { blur: 24,  k: 0.5, max: 24, chroma: 0, l: [255, 255, 255, 0.48], d: [22, 24, 32, 0.56] },
+    sheet:  { blur: 30,  k: 0,   max: 24, chroma: 0, l: [255, 255, 255, 0.74], d: [24, 26, 34, 0.80] }
   };
 
   var defs = null, filters = {}, fseq = 0, items = [], quality = 'high', dark = false, ro = null, mo = null;
@@ -116,15 +116,21 @@ var Glass = (function () {
     f.setAttribute('x', 0); f.setAttribute('y', 0);
     f.setAttribute('width', w); f.setAttribute('height', h);
     var map = buildMap(w, h, radius, bevel, amt, mag);
-    f.innerHTML =
-      '<feImage href="' + map.url + '" x="0" y="0" width="' + w + '" height="' + h + '" preserveAspectRatio="none" result="M"/>' +
-      [0, 1, 2].map(function (i) {
-        var s = 2 * map.maxD * (i === 0 ? 1 + chroma : i === 2 ? 1 - chroma : 1);
-        return '<feDisplacementMap in="SourceGraphic" in2="M" scale="' + s.toFixed(2) + '" xChannelSelector="R" yChannelSelector="G" result="D' + i + '"/>' +
-          '<feColorMatrix in="D' + i + '" type="matrix" values="' + channel(i) + '" result="C' + i + '"/>';
-      }).join('') +
-      '<feComposite in="C0" in2="C1" operator="arithmetic" k2="1" k3="1" result="RG"/>' +
-      '<feComposite in="RG" in2="C2" operator="arithmetic" k2="1" k3="1"/>';
+    if (!chroma) {
+      f.innerHTML =
+        '<feImage href="' + map.url + '" x="0" y="0" width="' + w + '" height="' + h + '" preserveAspectRatio="none" result="M"/>' +
+        '<feDisplacementMap in="SourceGraphic" in2="M" scale="' + (2 * map.maxD).toFixed(2) + '" xChannelSelector="R" yChannelSelector="G"/>';
+    } else {
+      f.innerHTML =
+        '<feImage href="' + map.url + '" x="0" y="0" width="' + w + '" height="' + h + '" preserveAspectRatio="none" result="M"/>' +
+        [0, 1, 2].map(function (i) {
+          var s = 2 * map.maxD * (i === 0 ? 1 + chroma : i === 2 ? 1 - chroma : 1);
+          return '<feDisplacementMap in="SourceGraphic" in2="M" scale="' + s.toFixed(2) + '" xChannelSelector="R" yChannelSelector="G" result="D' + i + '"/>' +
+            '<feColorMatrix in="D' + i + '" type="matrix" values="' + channel(i) + '" result="C' + i + '"/>';
+        }).join('') +
+        '<feComposite in="C0" in2="C1" operator="arithmetic" k2="1" k3="1" result="RG"/>' +
+        '<feComposite in="RG" in2="C2" operator="arithmetic" k2="1" k3="1"/>';
+    }
     ensureDefs().appendChild(f);
     return (filters[key] = id);
   }
@@ -260,7 +266,10 @@ var Glass = (function () {
     all.filter(function (e) { return CONTAINERS[e.getAttribute('data-glass')]; }).forEach(register);
     all.filter(function (e) { return !CONTAINERS[e.getAttribute('data-glass')]; }).forEach(register);
     document.querySelectorAll('.sheet-body').forEach(function (b) {
-      b.addEventListener('scroll', function () { var s = b.closest('.sheet'); if (s && s._glass) markHost(s._glass); }, { passive: true });
+      b.addEventListener('scroll', function () {
+        var s = b.closest('.sheet');
+        if (s && s._glass) { measureHoles(s._glass); updateMask(s._glass); }
+      }, { passive: true });
     });
     window.addEventListener('resize', function () { items.forEach(function (it) { if (CONTAINERS[it.el.getAttribute('data-glass')]) markHost(it); }); });
     document.body.classList.add('glass-on');

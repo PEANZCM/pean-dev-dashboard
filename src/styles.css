@@ -544,8 +544,10 @@ body.glass-on .tab-glider{background:none;box-shadow:0 2px 10px rgba(0,0,0,.10)}
 body.glass-on .sheet{background:transparent}
 
 /* transform 交给弹簧（motion.js），CSS 不再给这些元素做 transform 过渡 */
-body.motion-on .pill-btn,body.motion-on .icon-btn,body.motion-on .checkin-btn,body.motion-on .mood-btn{transition-property:background,color,opacity,box-shadow,filter}
-body.motion-on .pill-btn:active,body.motion-on .icon-btn:active,body.motion-on .checkin-btn:active,body.motion-on .mood-btn:active{transform:none}
+body.motion-on .pill-btn,body.motion-on .icon-btn,body.motion-on .checkin-btn,body.motion-on .mood-btn,
+body.motion-on .seg-btn,body.motion-on .set-nav-btn,body.motion-on .task-edit-add-btn,body.motion-on .task-edit-del-btn{transition-property:background,color,opacity,box-shadow,filter}
+body.motion-on .pill-btn:active,body.motion-on .icon-btn:active,body.motion-on .checkin-btn:active,body.motion-on .mood-btn:active,
+body.motion-on .seg-btn:active,body.motion-on .set-nav-btn:active,body.motion-on .task-edit-add-btn:active,body.motion-on .task-edit-del-btn:active{transform:none}
 body.motion-on .tab-glider{transition:none}
 .tab-glider{pointer-events:none}
 /* 拖动 / 飞行中的滑块浮到文字上方，变成透明放大镜，折射下面的标签文字 */

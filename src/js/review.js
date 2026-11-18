@@ -57,10 +57,15 @@
     return true;
   }
 
-  // 晚上商量明天；白天和凌晨商量今天
-  function planTarget(now) {
-    var d = now || new Date(), h = d.getHours();
-    return h >= 17 ? Dates.offset(1, now) : Dates.today(now);
+  // 晚上商量明天；但如果今天还没有定计划且今天还没打卡，优先商量今天
+  function planTarget(now, daily, checkin) {
+    var d = now || new Date(), h = d.getHours(), t = Dates.today(now);
+    if (daily && checkin) {
+      var hasTodayPlan = daily.plans && daily.plans[t] && daily.plans[t].items && daily.plans[t].items.length;
+      var checkedToday = checkin.dates && checkin.dates.indexOf(t) !== -1;
+      if (!hasTodayPlan && !checkedToday) return t;
+    }
+    return h >= 17 ? Dates.offset(1, now) : t;
   }
 
   /* AI 商量计划的回复 → { reply, items }。items 为 null 表示这轮没给方案
