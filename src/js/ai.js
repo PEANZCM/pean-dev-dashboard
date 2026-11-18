@@ -95,7 +95,7 @@ function diffLines(d) {
 function mountPlanAssistant(area) {
   var box = el('div', 'ai-box');
   box.appendChild(el('div', 'ai-box-title', { textContent: 'AI 帮我调整规划' }));
-  var input = el('textarea', 'input', { rows: 2, placeholder: '比如：我想把鸿蒙提前到这学期，再加一条 AI 方向' });
+  var input = el('textarea', 'input', { rows: 2, placeholder: '比如：把本周的 C 语言指针与结构体刷题任务拆细一点，或者调整寒假蓝桥集训节奏' });
   var go = el('button', 'pill-btn tint sm', { textContent: '生成草稿' });
   var result = el('div', 'ai-result');
   box.appendChild(input);

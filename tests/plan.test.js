@@ -2,10 +2,10 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const Plan = require('../src/js/plan.js');
 
-test('迁移默认规划：6 个阶段、54 个任务、周标签保留', () => {
+test('迁移默认规划：6 个阶段、42 个任务、周标签保留', () => {
   const { plan, progress } = Plan.migrate({ tasks: { t001: true, t101: true, t999: false }, customStages: null });
   assert.equal(plan.stages.length, 6);
-  assert.equal(Plan.allTasks(plan).length, 54);
+  assert.equal(Plan.allTasks(plan).length, 42);
   assert.equal(plan.stages[1].items.filter((x) => x.type === 'week').length, 3);
   assert.deepEqual(Object.keys(progress.done).sort(), ['t001', 't101']);
   assert.equal(progress.done.t001.legacy, true);
@@ -13,15 +13,15 @@ test('迁移默认规划：6 个阶段、54 个任务、周标签保留', () => 
 
 test('迁移拆分标题、时间、简介，并补上核心产出', () => {
   const s = Plan.migrate(null).plan.stages[1];
-  assert.equal(s.title, 'Web 基础');
-  assert.equal(s.time, '暑假3周');
-  assert.equal(s.desc, '能跑能看能交互');
-  assert.equal(s.output, '3个网页作品 + GitHub仓库');
-  assert.equal(s.icon, 'globe');
+  assert.equal(s.title, '21天速通C语言');
+  assert.equal(s.time, '11.23-12.15');
+  assert.equal(s.desc, '每天2.5h手敲代码，联考翻盘');
+  assert.equal(s.output, '联考75+分 + 独立AC满100题');
+  assert.equal(s.icon, 'book');
 });
 
 test('★ 重点任务拆成 star 标记', () => {
-  const t = Plan.allTasks(Plan.migrate(null).plan).find((x) => x.id === 't107');
+  const t = Plan.allTasks(Plan.migrate(null).plan).find((x) => x.id === 't109');
   assert.equal(t.star, true);
   assert.equal(t.text.indexOf('★'), -1);
 });
@@ -54,7 +54,7 @@ test('当前阶段 = 第一个未完成阶段；统计与旧版一致', () => {
   ids.forEach((id) => { tasks[id] = true; });
   const { plan, progress } = Plan.migrate({ tasks });
   assert.equal(Plan.currentStage(plan, progress).id, 's1');
-  assert.deepEqual(Plan.totals(plan, progress), { done: 4, total: 54, pct: 7 });
+  assert.deepEqual(Plan.totals(plan, progress), { done: 5, total: 42, pct: 12 });
 });
 
 test('删除有完成记录的阶段会归档，没有的直接删', () => {

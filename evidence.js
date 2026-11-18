@@ -8,13 +8,16 @@ const path = require('path');
 const { execFile, spawn } = require('child_process');
 
 const SKIP = new Set(['node_modules', 'oh_modules', '.git', '.hvigor', '.gradle', '.idea', '.vscode', '.next', '.venv', 'venv', '__pycache__', 'dist', 'build', 'out', 'target', 'coverage']);
+const SKIP_EXT = new Set(['.exe', '.o', '.obj', '.out', '.ilk', '.pdb', '.pch', '.gch']);
 const MAX_ENTRIES = 30000;
 
 // 算作开发软件的进程（小写进程名 → 显示名），其他软件不记录
 const DEV_APPS = {
-  code: 'VS Code', trae: 'Trae', 'trae cn': 'Trae', cursor: 'Cursor', devecostudio64: 'DevEco Studio', devecostudio: 'DevEco Studio',
+  code: 'VS Code', devcpp: 'Dev-C++', consolepauser: 'Dev-C++', codeblocks: 'Code::Blocks',
+  trae: 'Trae', 'trae cn': 'Trae', cursor: 'Cursor', devecostudio64: 'DevEco Studio', devecostudio: 'DevEco Studio',
   idea64: 'IntelliJ IDEA', webstorm64: 'WebStorm', pycharm64: 'PyCharm', clion64: 'CLion', studio64: 'Android Studio', devenv: 'Visual Studio',
-  windowsterminal: '终端', powershell: '终端', pwsh: '终端', cmd: '终端', claude: 'Claude'
+  windowsterminal: '终端', powershell: '终端', pwsh: '终端', cmd: '终端', conhost: '终端', openconsole: '终端', claude: 'Claude',
+  oj: 'OJ 刷题平台'
 };
 
 function dayRange(date) {
@@ -36,6 +39,7 @@ async function scanFolder(root, date) {
       const fp = path.join(dir, e.name);
       if (e.isDirectory()) { if (!SKIP.has(e.name)) stack.push(fp); continue; }
       if (!e.isFile()) continue;
+      if (SKIP_EXT.has(path.extname(e.name).toLowerCase())) continue;
       try {
         const t = (await fs.promises.stat(fp)).mtimeMs;
         if (t >= from && t < to) found.push({ rel: path.relative(root, fp).replace(/\\/g, '/'), t });
@@ -116,7 +120,7 @@ function addSample(usage, date, proc, sec) {
   return true;
 }
 
-// PowerShell 每 15 秒报一次前台进程名和无操作秒数；主程序没了它自己退出
+// PowerShell 每 15 秒报一次前台进程名和无操作秒数；浏览器停在 OJ/刷题平台时在本地归类为 oj，不输出任何窗口标题
 function trackerScript(pid, interval) {
   return "$ErrorActionPreference='SilentlyContinue';[Console]::OutputEncoding=[Text.Encoding]::UTF8;" +
     "Add-Type -TypeDefinition 'using System;using System.Runtime.InteropServices;public static class PeanFg{" +
@@ -127,7 +131,9 @@ function trackerScript(pid, interval) {
     "public static long Idle(){LI i=new LI();i.s=8;GetLastInputInfo(ref i);return (uint)((uint)Environment.TickCount-i.t)/1000;}}';" +
     "while($true){if(-not(Get-Process -Id " + pid + ")){exit};$p=0;" +
     "[void][PeanFg]::GetWindowThreadProcessId([PeanFg]::GetForegroundWindow(),[ref]$p);" +
-    "$n=(Get-Process -Id $p).ProcessName;[Console]::WriteLine($n+[char]9+[PeanFg]::Idle());" +
+    "$pr=Get-Process -Id $p;$n=$pr.ProcessName;" +
+    "if($n -match '^(msedge|chrome|firefox|brave)$' -and $pr.MainWindowTitle -match '(PTA|Pintia|拼题|洛谷|Luogu|蓝桥|Lanqiao|AcWing|LeetCode|力扣|Codeforces|牛客|Nowcoder|VJudge|HDOJ|OI Wiki|cppreference)'){$n='oj'};" +
+    "[Console]::WriteLine($n+[char]9+[PeanFg]::Idle());" +
     "[Console]::Out.Flush();Start-Sleep -Seconds " + interval + "}";
 }
 

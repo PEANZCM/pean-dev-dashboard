@@ -6,6 +6,7 @@
   if (typeof module === 'object' && module.exports) module.exports = data;
   else root.CHANGELOG = data;
 })(this, [
+  { v: '2.1.0', edition: 'New liquid Pro', date: '2026-11-18', title: '蓝桥省一冲刺规划', items: ['人生路线重构为 C 语言 21 天速通、期末 90+ 保绩点与蓝桥杯 B 组省一 6 阶段实战计划', 'AI 教练切换为 C/C++ 算法竞赛、杭师大联考与保研绩点督促模式', '开发时长统计支持 Dev-C++、Code::Blocks 及 PTA/洛谷等刷题平台，文件统计跳过编译产物'] },
   { v: '2.0.0', edition: 'New liquid Pro', date: '2026-11-07', title: 'New liquid Pro', items: ['iOS 风格液态玻璃界面、弹簧动效和可选壁纸', 'AI 成为首页主角：陪学计时、持续对话、走神提醒', '每天和教练商量计划，打卡前由 AI 审核证据', '人生规划可以随时增删，AI 帮你调整和拆解', '清理遗留样式和文件，并提供 Windows 安装包'] },
   { v: '1.7.3', date: '2026-11-07', title: '禁用按钮', items: ['按钮变成禁用时，卡片上的洞马上收起，不再露出一块壁纸'] },
   { v: '1.7.2', date: '2026-11-04', title: '红色按钮', items: ['重置、删除、移除等按钮平时是普通颜色，鼠标移上去才变红'] },

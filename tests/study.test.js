@@ -54,6 +54,8 @@ test('分心：看这个软件本身不算离开也不算回来；人走了就�
 
 test('软件分类', () => {
   assert.equal(Evidence.isDev('Code'), true);
+  assert.equal(Evidence.isDev('devcpp'), true);
+  assert.equal(Evidence.isDev('oj'), true);
   assert.equal(Evidence.isDev('chrome'), false);
   assert.equal(Evidence.isSelf('PEAN的开发小天地'), true);
   assert.equal(Evidence.isSelf('electron'), true);

@@ -1,6 +1,6 @@
 # PEAN的开发小天地
 
-**V2.0.0-New liquid Pro**
+**V2.1.0-New liquid Pro**
 
 Windows 桌面学习软件：iOS 风格液态玻璃界面，加上一个陪你学习、督促你打卡的 AI 教练。基于 Electron + 原生 HTML/CSS/JS，没有构建步骤。
 
@@ -55,3 +55,4 @@ npm run build    # 打包 Windows 安装程序
 | v1.7.2 | 重置、删除、移除等危险按钮平时是普通颜色，鼠标移上去才变红 |
 | v1.7.3 | 修复按钮变成禁用时，卡片上的洞没有马上收起 |
 | v2.0.0-New liquid Pro | 重构完成：清理遗留样式和文件，提供 Windows 安装包 |
+| v2.1.0-New liquid Pro | 蓝桥省一冲刺规划：重构 6 阶段 C/C++ 与期末保绩点路线，升级 AI 教练目标，支持 Dev-C++ 与 PTA/洛谷刷题时长统计并过滤编译产物 |

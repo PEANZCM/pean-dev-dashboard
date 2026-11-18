@@ -120,6 +120,8 @@ test('扫描文件夹：只算当天改动，跳过 node_modules，真实 git �
     fs.mkdirSync(path.join(dir, 'src'));
     fs.mkdirSync(path.join(dir, 'node_modules'));
     fs.writeFileSync(path.join(dir, 'src', 'a.js'), '1');
+    fs.writeFileSync(path.join(dir, 'src', 'a.exe'), '1');
+    fs.writeFileSync(path.join(dir, 'src', 'a.o'), '1');
     fs.writeFileSync(path.join(dir, 'node_modules', 'b.js'), '1');
     fs.writeFileSync(path.join(dir, 'old.md'), '1');
     fs.utimesSync(path.join(dir, 'old.md'), at('2026-01-01T00:00:00'), at('2026-01-01T00:00:00'));

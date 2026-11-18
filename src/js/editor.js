@@ -21,7 +21,7 @@ function editorRow(item) {
   row.dataset.type = week ? 'week' : 'task';
   var input = el('input', 'task-edit-input', {
     type: 'text',
-    placeholder: week ? '周标签（如 Week 1 · HTML + CSS）' : '任务内容（★ 开头为重点任务）',
+    placeholder: week ? '周标签（如 Week 1 · 循环与数组）' : '任务内容（★ 开头为重点任务）',
     value: week ? item.text || '' : (item.star ? '★ ' : '') + (item.text || '')
   });
   var del = el('button', 'task-edit-del-btn', { textContent: '✕', title: '删除此条' });
@@ -75,7 +75,7 @@ function editorStage(s) {
   box.appendChild(head);
 
   var sub = el('div', 'stage-edit-head');
-  sub.appendChild(field('f-output', s.output, '核心产出（如 第一个鸿蒙原生App）'));
+  sub.appendChild(field('f-output', s.output, '核心产出（如 联考75+分 + 独立AC满100题）'));
   sub.appendChild(field('f-desc', s.desc, '一句话简介'));
   box.appendChild(sub);
 
