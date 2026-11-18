@@ -183,12 +183,15 @@ function bindEvents() {
   document.querySelectorAll('.mood-btn').forEach(function (b) { b.addEventListener('click', function () { setMood(b.dataset.mood); }); });
   on('diaryEditBtn', function () { toggleDiaryMode(false); });
   on('diaryPreviewBtn', function () { toggleDiaryMode(true); });
-  $('diaryText').addEventListener('blur', saveDiary);
+  on('diarySaveBtn', function () { saveDiary(true); });
+  $('diaryText').addEventListener('blur', function () { saveDiary(false); });
   // 边写边存（停笔 0.8 秒），关窗口前再存一次，不会因为关软件丢掉正在写的日记
   var diaryTimer = 0;
-  $('diaryText').addEventListener('input', function () { clearTimeout(diaryTimer); diaryTimer = setTimeout(saveDiary, 800); });
-  window.addEventListener('beforeunload', saveDiary);
+  $('diaryText').addEventListener('input', function () { clearTimeout(diaryTimer); diaryTimer = setTimeout(function () { saveDiary(false); }, 800); });
+  window.addEventListener('beforeunload', function () { saveDiary(false); });
   on('uploadShotBtn', uploadScreenshots);
+  on('imgLightboxClose', closeLightbox);
+  $('imgLightbox').addEventListener('click', function (e) { if (e.target === $('imgLightbox')) closeLightbox(); });
 
   on('quoteRefresh', refreshQuote);
   on('quoteAdd', addCustomQuote);

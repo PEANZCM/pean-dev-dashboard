@@ -1,6 +1,6 @@
 # PEAN的开发小天地
 
-**V2.1.2-New liquid Pro**
+**V2.1.3-New liquid Pro**
 
 Windows 桌面学习软件：iOS 风格液态玻璃界面，加上一个陪你学习、督促你打卡的 AI 教练。基于 Electron + 原生 HTML/CSS/JS，没有构建步骤。
 
@@ -58,3 +58,4 @@ npm run build    # 打包 Windows 安装程序
 | v2.1.0-New liquid Pro | 蓝桥省一冲刺规划：重构 6 阶段 C/C++ 与期末保绩点路线，升级 AI 教练目标，支持 Dev-C++ 与 PTA/洛谷刷题时长统计并过滤编译产物 |
 | v2.1.1-New liquid Pro | 修复晚上无法商量今日计划的问题（支持今天/明天随时切换），修复设置弹层与完整液态模式下拖动按钮挖洞延迟 |
 | v2.1.2-New liquid Pro | 白名单新增 Antigravity 等工具；支持识别 B 站编程与专业课学习视频（与娱乐视频区分） |
+| v2.1.3-New liquid Pro | 当天详情新增「保存记录」按钮与已保存状态提示并实时同步首页证据；支持截图点击高清大图预览与证据栏缩略图展示 |

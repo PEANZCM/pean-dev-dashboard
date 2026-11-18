@@ -54,6 +54,18 @@ function renderCalendar() {
 }
 
 // ===== 当天详情：固定在日历右边，默认显示今天，点日历换日子 =====
+function updateSaveHint(dateStr, stamped) {
+  var hint = $('diarySaveHint');
+  if (!hint) return;
+  var hasData = (S.diary.entries[dateStr] && S.diary.entries[dateStr].trim()) || (S.shots.shots[dateStr] && S.shots.shots[dateStr].length) || S.mood.moods[dateStr];
+  if (stamped) hint.textContent = '✓ 已保存 ' + new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+  else hint.textContent = hasData ? '✓ 已保存' : '';
+}
+
+function syncTodayEvidence(dateStr) {
+  if (dateStr === Dates.today() && typeof refreshEvidence === 'function') refreshEvidence();
+}
+
 function openDayDetail(dateStr) {
   if (selectedDate && selectedDate !== dateStr) saveDiary();
   selectedDate = dateStr;
@@ -68,6 +80,7 @@ function openDayDetail(dateStr) {
   $('diaryText').value = S.diary.entries[dateStr] || '';
   toggleDiaryMode(false, true);
   renderScreenshots(dateStr);
+  updateSaveHint(dateStr, false);
 }
 
 function setMood(mood) {
@@ -77,16 +90,20 @@ function setMood(mood) {
   Store.save('mood.json', S.mood);
   document.querySelectorAll('.mood-btn').forEach(function (b) { b.classList.toggle('selected', !!mood && b.dataset.mood === mood); });
   renderCalendar();
+  updateSaveHint(selectedDate, true);
   showToast(mood ? '心情已记录' : '心情已清除');
 }
 
-function saveDiary() {
+function saveDiary(manual) {
   if (!selectedDate) return;
   var text = $('diaryText').value;
   if (text.trim()) S.diary.entries[selectedDate] = text;
   else delete S.diary.entries[selectedDate];
   Store.save('diary.json', S.diary);
   renderCalendar();
+  updateSaveHint(selectedDate, true);
+  syncTodayEvidence(selectedDate);
+  if (manual === true) showToast('记录已保存，证据已同步');
 }
 
 function toggleDiaryMode(preview, silent) {
@@ -100,7 +117,50 @@ function toggleDiaryMode(preview, silent) {
   }
 }
 
-// ===== 截图记录 =====
+// ===== 截图记录与大图预览（灯箱） =====
+function openLightbox(src) {
+  if (!src) return;
+  var box = $('imgLightbox'), pic = $('imgLightboxPic');
+  if (!box || !pic) return;
+  pic.src = src;
+  box.style.display = 'flex';
+}
+
+function closeLightbox() {
+  var box = $('imgLightbox'), pic = $('imgLightboxPic');
+  if (!box || box.style.display === 'none') return false;
+  box.style.display = 'none';
+  if (pic) pic.src = '';
+  return true;
+}
+
+function renderShotThumbs(dateStr, grid, allowDelete) {
+  var shots = S.shots.shots[dateStr] || [];
+  if (!shots.length) {
+    if (allowDelete) grid.innerHTML = '<div class="screenshot-empty">还没有截图记录</div>';
+    return;
+  }
+  grid.innerHTML = '';
+  shots.forEach(function (name, idx) {
+    var item = document.createElement('div');
+    item.className = 'screenshot-item';
+    item.title = '点击放大预览截图';
+    var img = document.createElement('img');
+    item.addEventListener('click', function () { if (img.src) openLightbox(img.src); });
+    item.appendChild(img);
+    if (allowDelete) {
+      var del = document.createElement('div');
+      del.className = 'screenshot-delete';
+      del.textContent = '✕';
+      del.title = '删除截图';
+      del.addEventListener('click', function (e) { e.stopPropagation(); deleteScreenshot(dateStr, idx); });
+      item.appendChild(del);
+    }
+    grid.appendChild(item);   // 先按顺序占位，图片异步填充，顺序不会乱
+    dashboardAPI.readScreenshot(name).then(function (src) { if (src) img.src = src; });
+  });
+}
+
 async function uploadScreenshots() {
   if (!selectedDate) return;
   var date = selectedDate;
@@ -109,27 +169,13 @@ async function uploadScreenshots() {
   (S.shots.shots[date] = S.shots.shots[date] || []).push.apply(S.shots.shots[date], files);
   Store.save('screenshots.json', S.shots);
   renderScreenshots(date);
-  showToast('上传了 ' + files.length + ' 张截图');
+  updateSaveHint(date, true);
+  syncTodayEvidence(date);
+  showToast('上传了 ' + files.length + ' 张截图（点击图片可放大预览）');
 }
 
 function renderScreenshots(dateStr) {
-  var grid = $('screenshotGrid');
-  var shots = S.shots.shots[dateStr] || [];
-  if (!shots.length) { grid.innerHTML = '<div class="screenshot-empty">还没有截图记录</div>'; return; }
-  grid.innerHTML = '';
-  shots.forEach(function (name, idx) {
-    var item = document.createElement('div');
-    item.className = 'screenshot-item';
-    var img = document.createElement('img');
-    var del = document.createElement('div');
-    del.className = 'screenshot-delete';
-    del.textContent = '✕';
-    del.addEventListener('click', function (e) { e.stopPropagation(); deleteScreenshot(dateStr, idx); });
-    item.appendChild(img);
-    item.appendChild(del);
-    grid.appendChild(item);   // 先按顺序占位，图片异步填充，顺序不会乱
-    dashboardAPI.readScreenshot(name).then(function (src) { if (src) img.src = src; });
-  });
+  renderShotThumbs(dateStr, $('screenshotGrid'), true);
 }
 
 function deleteScreenshot(dateStr, idx) {
@@ -140,6 +186,8 @@ function deleteScreenshot(dateStr, idx) {
   if (!shots.length) delete S.shots.shots[dateStr];
   Store.save('screenshots.json', S.shots);
   renderScreenshots(dateStr);
+  updateSaveHint(dateStr, true);
+  syncTodayEvidence(dateStr);
   showToast('截图已删除');
 }
 

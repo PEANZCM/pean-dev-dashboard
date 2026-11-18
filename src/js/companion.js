@@ -189,11 +189,17 @@ async function cachedEvidence() {
 }
 
 async function refreshEvidence() {
-  Comp.evidence = await gatherEvidence(Dates.today());
+  var today = Dates.today();
+  Comp.evidence = await gatherEvidence(today);
   Comp.evidenceAt = Date.now();
   var box = $('todayEvidence');
   box.innerHTML = '';
   evidenceLines(Comp.evidence).forEach(function (t) { box.appendChild(el('p', 'ai-diff', { textContent: t })); });
+  if ((S.shots.shots[today] || []).length && typeof renderShotThumbs === 'function') {
+    var grid = el('div', 'screenshot-grid evidence-shots');
+    box.appendChild(grid);
+    renderShotThumbs(today, grid, false);
+  }
 }
 
 function setOrbTheme(dark) {

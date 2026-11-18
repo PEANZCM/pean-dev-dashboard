@@ -185,10 +185,13 @@
           </div>
         </div>
         <div class="diary-toolbar">
-          <span class="field-label">心得日记（Markdown）</span>
-          <div class="seg" role="group">
-            <button class="seg-btn active" id="diaryEditBtn">编辑</button>
-            <button class="seg-btn" id="diaryPreviewBtn">预览</button>
+          <span class="field-label">心得日记（Markdown）<small class="diary-save-hint" id="diarySaveHint"></small></span>
+          <div class="head-tools">
+            <div class="seg" role="group">
+              <button class="seg-btn active" id="diaryEditBtn">编辑</button>
+              <button class="seg-btn" id="diaryPreviewBtn">预览</button>
+            </div>
+            <button class="pill-btn primary sm" id="diarySaveBtn">保存记录</button>
           </div>
         </div>
         <textarea class="diary-editor" id="diaryText" placeholder="## 今天学了什么&#10;&#10;用 **Markdown** 写心得..."></textarea>
@@ -378,6 +381,11 @@
       <button class="pill-btn primary" id="quoteSave">收藏</button>
     </div>
   </section>
+</div>
+
+<div class="img-lightbox" id="imgLightbox" style="display:none" role="dialog" aria-label="截图预览">
+  <button class="icon-btn sm img-lightbox-close" id="imgLightboxClose" title="关闭预览" aria-label="关闭预览"><svg class="ic"><use href="#i-close"/></svg></button>
+  <img class="img-lightbox-pic" id="imgLightboxPic" src="" alt="截图预览">
 </div>
 
 <div class="toast" id="toast"></div>

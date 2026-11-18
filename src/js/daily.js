@@ -249,6 +249,11 @@ async function openReview(date) {
 
   var ev = RV.ev = await gatherEvidence(date);
   evidenceLines(ev).forEach(function (t) { $('reviewEvidence').appendChild(el('p', 'ai-diff', { textContent: t })); });
+  if ((S.shots.shots[date] || []).length && typeof renderShotThumbs === 'function') {
+    var shotGrid = el('div', 'screenshot-grid evidence-shots');
+    $('reviewEvidence').appendChild(shotGrid);
+    renderShotThumbs(date, shotGrid, false);
+  }
   var r = await askVerdict(date, ev), v = null;
   RV.busy = false;
   if (r.ok) { try { v = Review.parseVerdict(parseJson(r.text)); } catch (e) { r = { ok: false, error: e.message }; } }

@@ -110,7 +110,12 @@ function bindShell() {
     if (e.target.classList.contains('sheet-dim') || e.target === layer) closeSheet();
     if (e.target.closest && e.target.closest('[data-close]')) closeSheet();
   });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeSheet(); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      if (typeof closeLightbox === 'function' && closeLightbox()) return;
+      closeSheet();
+    }
+  });
   document.querySelectorAll('.sheet').forEach(function (s) {
     Motion.sheetDrag(s, s.querySelector('.sheet-head'), function () { if (Sheet.current === s.id) closeSheet(); });
   });
