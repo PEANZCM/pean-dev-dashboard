@@ -13,11 +13,13 @@ const MAX_ENTRIES = 30000;
 
 // 算作开发软件的进程（小写进程名 → 显示名），其他软件不记录
 const DEV_APPS = {
-  code: 'VS Code', devcpp: 'Dev-C++', consolepauser: 'Dev-C++', codeblocks: 'Code::Blocks',
-  trae: 'Trae', 'trae cn': 'Trae', cursor: 'Cursor', devecostudio64: 'DevEco Studio', devecostudio: 'DevEco Studio',
+  code: 'VS Code', antigravity: 'Antigravity', devcpp: 'Dev-C++', consolepauser: 'Dev-C++', codeblocks: 'Code::Blocks',
+  trae: 'Trae', 'trae cn': 'Trae', 'trae solo': 'Trae', 'trae solo cn': 'Trae',
+  cursor: 'Cursor', qoder: 'Qoder', 'qoder cn': 'Qoder', devin: 'Devin',
+  devecostudio64: 'DevEco Studio', devecostudio: 'DevEco Studio',
   idea64: 'IntelliJ IDEA', webstorm64: 'WebStorm', pycharm64: 'PyCharm', clion64: 'CLion', studio64: 'Android Studio', devenv: 'Visual Studio',
   windowsterminal: '终端', powershell: '终端', pwsh: '终端', cmd: '终端', conhost: '终端', openconsole: '终端', claude: 'Claude',
-  oj: 'OJ 刷题平台'
+  oj: 'OJ 刷题平台', course: 'B站学习课程'
 };
 
 function dayRange(date) {
@@ -132,7 +134,10 @@ function trackerScript(pid, interval) {
     "while($true){if(-not(Get-Process -Id " + pid + ")){exit};$p=0;" +
     "[void][PeanFg]::GetWindowThreadProcessId([PeanFg]::GetForegroundWindow(),[ref]$p);" +
     "$pr=Get-Process -Id $p;$n=$pr.ProcessName;" +
-    "if($n -match '^(msedge|chrome|firefox|brave)$' -and $pr.MainWindowTitle -match '(PTA|Pintia|拼题|洛谷|Luogu|蓝桥|Lanqiao|AcWing|LeetCode|力扣|Codeforces|牛客|Nowcoder|VJudge|HDOJ|OI Wiki|cppreference)'){$n='oj'};" +
+    "if($n -match '^(msedge|chrome|firefox|brave)$'){" +
+    "if($pr.MainWindowTitle -match '(PTA|Pintia|拼题|洛谷|Luogu|蓝桥|Lanqiao|AcWing|LeetCode|力扣|Codeforces|牛客|Nowcoder|VJudge|HDOJ|OI Wiki|cppreference)'){$n='oj'}" +
+    "elseif($pr.MainWindowTitle -match '(哔哩哔哩|bilibili)' -and $pr.MainWindowTitle -match '(C语言|C\\+\\+|程序设计|算法|数据结构|蓝桥|天梯|ACM|洛谷|PTA|翁恺|鹏哥|AcWing|指针|数组|结构体|函数|递归|链表|动态规划|DFS|BFS|贪心|二分|微积分|高数|高等数学|大学物理|大物|线性代数|离散数学|鸿蒙|ArkTS|编程|代码|开发|教程|课程|讲义|期末)'){$n='course'}" +
+    "};" +
     "[Console]::WriteLine($n+[char]9+[PeanFg]::Idle());" +
     "[Console]::Out.Flush();Start-Sleep -Seconds " + interval + "}";
 }

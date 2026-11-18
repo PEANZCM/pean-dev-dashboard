@@ -6,6 +6,7 @@
   if (typeof module === 'object' && module.exports) module.exports = data;
   else root.CHANGELOG = data;
 })(this, [
+  { v: '2.1.2', edition: 'New liquid Pro', date: '2026-11-18', title: '支持 Antigravity 与 B 站学习课程识别', items: ['开发软件白名单新增 Antigravity、Qoder、Devin 及 Trae SOLO', '浏览器看 B 站编程/微积分/大物等课程视频自动归类为「B站学习课程」并计入时长，看娱乐视频仍正常触发走神提醒'] },
   { v: '2.1.1', edition: 'New liquid Pro', date: '2026-11-18', title: '每日计划日期切换与玻璃挖洞跟手', items: ['今日未定计划时晚上优先商量今天，商量计划弹层新增「今天 / 明天」随时切换按钮', '优化完整液态模式下弹层与大卡片滤镜开销，按钮拖动、设置滚动与切页时挖洞当帧同步'] },
   { v: '2.1.0', edition: 'New liquid Pro', date: '2026-11-18', title: '蓝桥省一冲刺规划', items: ['人生路线重构为 C 语言 21 天速通、期末 90+ 保绩点与蓝桥杯 B 组省一 6 阶段实战计划', 'AI 教练切换为 C/C++ 算法竞赛、杭师大联考与保研绩点督促模式', '开发时长统计支持 Dev-C++、Code::Blocks 及 PTA/洛谷等刷题平台，文件统计跳过编译产物'] },
   { v: '2.0.0', edition: 'New liquid Pro', date: '2026-11-07', title: 'New liquid Pro', items: ['iOS 风格液态玻璃界面、弹簧动效和可选壁纸', 'AI 成为首页主角：陪学计时、持续对话、走神提醒', '每天和教练商量计划，打卡前由 AI 审核证据', '人生规划可以随时增删，AI 帮你调整和拆解', '清理遗留样式和文件，并提供 Windows 安装包'] },
